@@ -1,0 +1,22 @@
+{
+  "name": "malhi-enterprise",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Malhi Enterprise business management app - Express + PostgreSQL",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "migrate:sqlite": "node migrate-sqlite-to-postgres.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^18.0.6",
+    "express": "^4.21.2",
+    "pg": "^8.16.3",
+    "sqlite3": "^5.1.7"
+  }
+}

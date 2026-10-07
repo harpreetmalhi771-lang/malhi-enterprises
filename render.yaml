@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: malhi-enterprise
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: PG_POOL_MAX
+        value: "5"

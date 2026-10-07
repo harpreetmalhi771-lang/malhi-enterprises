@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Malhi Enterprise — Web App</title>
+  <meta name="theme-color" content="#1b365d" />
+  <style>
+:root{--navy:#10233f;--navy2:#173b67;--teal:#0aa6a6;--teal2:#17c6bd;--gold:#f5b942;--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#718096;--line:#e6eaf0;--green:#0f9d67;--greenbg:#e8f8f1;--red:#e5484d;--redbg:#fff0f1;--orange:#d97706;--orangebg:#fff7e8;--bluebg:#eef5ff;--shadow:0 12px 35px rgba(16,35,63,.08);--radius:18px}
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}
+#login-screen{min-height:100vh;background:radial-gradient(circle at 20% 10%,#24598f 0,#10233f 42%,#081525 100%);display:flex;align-items:center;justify-content:center;padding:24px}
+.login-box{width:min(470px,100%);color:#fff;text-align:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(18px);padding:34px;border-radius:28px;box-shadow:0 30px 80px rgba(0,0,0,.28)}
+.login-box h1{margin:0 0 7px;letter-spacing:1.5px;font-size:30px}.login-box p{margin:0 0 24px;color:#cbd9e9}.who{display:grid;gap:12px}.who-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:16px;padding:18px 16px;cursor:pointer;font-size:17px;font-weight:800;text-align:left;transition:.2s}.who-btn:hover,.who-btn.active{background:linear-gradient(135deg,var(--teal),#087b9b);border-color:transparent;transform:translateY(-1px)}.who-btn small{display:block;font-weight:400;color:#c9d7e6;margin-top:5px}.pin-wrap{margin-top:18px;display:none}.pin-wrap.show{display:block}.pin-wrap input{width:170px;text-align:center;font-size:22px;letter-spacing:8px;padding:13px;border-radius:12px;border:0;margin:8px 0 12px}.pin-wrap button{display:block;width:100%;background:var(--gold);color:#182b46;border:0;border-radius:12px;padding:14px;font-weight:900;font-size:16px}.login-err{color:#ffd0c9;min-height:22px;font-size:14px}
+.app{display:none;min-height:100vh}.app.show{display:block}.top{background:linear-gradient(135deg,#0b1e36,#173b67 65%,#087f82);color:#fff;padding:15px 24px;display:flex;align-items:center;justify-content:space-between;gap:18px;position:sticky;top:0;z-index:40;box-shadow:0 8px 25px rgba(16,35,63,.18)}.brand{display:flex;align-items:center;gap:12px}.brand-mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#ffd875);display:grid;place-items:center;color:#10233f;font-weight:1000}.top h1{margin:0;font-size:17px;letter-spacing:.8px}.top .whoami{font-size:12px;color:#cbd9e9;margin-top:2px}.top-right{display:flex;align-items:center;gap:10px}.api-pill{font-size:11px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.1);color:#d8e7f7}.top button{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 13px}
+.nav{display:flex;gap:6px;overflow-x:auto;padding:10px 18px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:70px;z-index:30}.nav button{flex:0 0 auto;border:0;background:transparent;color:#64748b;border-radius:11px;padding:9px 13px;font-weight:800;font-size:12px;transition:.18s}.nav button:hover{background:#f0f5fa;color:var(--navy)}.nav button.active{background:var(--navy);color:#fff;box-shadow:0 5px 14px rgba(16,35,63,.16)}
+.page{display:none;padding:24px;max-width:1440px;margin:0 auto}.page.active{display:block}.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;margin-bottom:18px}.hero h2{margin:0 0 5px;color:var(--navy);font-size:27px;letter-spacing:-.5px}.hero p{margin:0;color:var(--muted);font-size:13px}.hero-actions{display:flex;gap:8px;flex-wrap:wrap}.kpis{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:12px;margin:16px 0 20px}.kpi{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden}.kpi:after{content:"";position:absolute;width:70px;height:70px;border-radius:50%;background:rgba(10,166,166,.08);right:-25px;top:-25px}.kpi b{display:block;font-size:21px;color:var(--navy);margin-bottom:5px}.kpi span{color:var(--muted);font-size:11px;font-weight:700}.kpi.bad b{color:var(--red)}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px}@media(max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)}}@media(max-width:800px){.grid2{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.page{padding:16px}.hero{align-items:flex-start;flex-direction:column}.top{padding:12px 14px}}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:15px}.card h3{margin:0 0 13px;color:var(--navy);font-size:15px}label{display:block;font-size:11px;color:var(--muted);margin:10px 0 5px;font-weight:800;text-transform:uppercase;letter-spacing:.35px}input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--text);font-size:14px;outline:none;transition:.18s}input:focus,select:focus,textarea:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(10,166,166,.1)}textarea{min-height:70px}input[readonly],.calc input,.calc select{background:#f4f7fa}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.btn{border:0;border-radius:11px;padding:10px 14px;font-weight:850;font-size:12px;transition:.18s}.btn:hover{transform:translateY(-1px)}.btn.primary{background:linear-gradient(135deg,var(--teal),#087f9b);color:#fff}.btn.navy{background:var(--navy);color:#fff}.btn.ghost{background:#f0f4f8;color:var(--navy)}.btn.danger{background:var(--redbg);color:var(--red)}.btn.gold{background:var(--gold);color:#152945}.btn.small{padding:7px 10px;font-size:11px}.msg{margin-top:10px;padding:10px 12px;border-radius:10px;display:none;font-size:13px}.msg.show{display:block}.msg.ok{background:var(--greenbg);color:#08704b}.msg.err{background:var(--redbg);color:#b42318}.preview{background:#f4f7fa;border-radius:12px;padding:13px;font-size:14px}.preview b{color:var(--navy)}.hint{font-size:12px;color:var(--muted);margin-top:8px}.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.quick button{background:#fff;border:1px solid var(--line);border-radius:16px;padding:17px 15px;text-align:left;cursor:pointer;box-shadow:var(--shadow);font-weight:850;color:var(--navy);transition:.18s}.quick button:hover{transform:translateY(-2px);border-color:#cbd8e6}.quick button span{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:5px}
+.list-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}.list-toolbar{padding:14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;flex-wrap:wrap}.list-toolbar .search-input{flex:1 1 260px;min-width:180px;background:#f8fafc}.list-toolbar select{width:auto;min-width:90px;background:#f8fafc}.toolbar-title{margin-right:auto;font-weight:900;color:var(--navy);font-size:14px}.toolbar-count{font-size:11px;color:var(--muted);font-weight:700}.table-wrap{overflow:auto;background:#fff}.table-wrap table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;min-width:850px}table th{background:#f7f9fc;color:#526174;text-align:left;padding:11px 12px;white-space:nowrap;border-bottom:1px solid var(--line);font-size:10px;text-transform:uppercase;letter-spacing:.55px;position:sticky;top:0;z-index:2}table td{padding:11px 12px;border-bottom:1px solid #eef1f5;white-space:nowrap;vertical-align:middle}table tbody tr:hover td{background:#fbfdff}table tbody tr:last-child td{border-bottom:0}.table-empty{text-align:center!important;color:var(--muted);padding:35px!important}.pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-top:1px solid var(--line);background:#fbfcfe;flex-wrap:wrap}.page-info{font-size:11px;color:var(--muted);font-weight:700}.page-buttons{display:flex;gap:5px;align-items:center}.page-buttons button{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:8px;padding:7px 10px;font-size:11px;font-weight:800}.page-buttons button.active{background:var(--navy);color:#fff;border-color:var(--navy)}.page-buttons button:disabled{opacity:.4;cursor:not-allowed}.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900}.badge:before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}.badge.ok{background:var(--greenbg);color:#08704b}.badge.warn{background:var(--orangebg);color:var(--orange)}.badge.bad{background:var(--redbg);color:var(--red)}.badge.info{background:var(--bluebg);color:#1769aa}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}.amount{font-weight:850;color:var(--navy)}
+.settings-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:15px}@media(max-width:900px){.settings-grid{grid-template-columns:1fr}.quick{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.kpis{grid-template-columns:1fr 1fr}.quick{grid-template-columns:1fr}.row{grid-template-columns:1fr}.top-right .api-pill{display:none}.nav{top:64px}}
+</style>
+</head>
+<body>
+  <div id="login-screen">
+    <div class="login-box">
+      <h1>MALHI ENTERPRISE</h1>
+      <p>Customer, Sales &amp; Finance Management</p>
+      <div class="who">
+        <button type="button" class="who-btn" data-id="navi" onclick="pickUser('navi')">Navi Malhi<small>Manager · tap your name, then enter PIN 2525</small></button>
+      </div>
+      <div class="pin-wrap" id="pin-wrap">
+        <input id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" />
+        <button type="button" onclick="tryLogin()">Open shop</button>
+      </div>
+      <p class="login-err" id="login-err">Tap Navi Malhi, then enter PIN 2525.</p>
+    </div>
+  </div>
+
+  <div class="app" id="app">
+    <div class="top">
+      <div class="brand"><div class="brand-mark">ME</div><div><h1>MALHI ENTERPRISE</h1><div class="whoami" id="whoami"></div></div></div>
+      <div class="top-right"><span class="api-pill" id="api-pill">● API</span><button onclick="logout()">Log out</button></div>
+    </div>
+    <div class="nav">
+      <button class="active" data-page="home" onclick="go('home')">⌂ Dashboard</button>
+      <button data-page="sale" onclick="go('sale')">＋ New Sale</button>
+      <button data-page="payment" onclick="go('payment')">₹ Payment</button>
+      <button data-page="search" onclick="go('search')">⌕ Search</button>
+      <button data-page="overdue" onclick="go('overdue')">⚠ Overdue</button>
+      <button data-page="products" onclick="go('products')">▦ Products</button>
+      <button data-page="customers" onclick="go('customers')">♙ Customers</button>
+      <button data-page="sales" onclick="go('sales')">▤ Sales</button>
+      <button data-page="payments" onclick="go('payments')">◉ Payments</button>
+      <button data-page="settings" onclick="go('settings')">⚙ Settings</button>
+    </div>
+
+    <section class="page active" id="home">
+      <div class="hero">
+        <h2>Today’s shop</h2>
+        <p>Add a sale, take a payment, find a customer by phone, or check who is late. No copy-paste.</p>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><b id="kpi-customers">0</b><span>Customers</span></div>
+        <div class="kpi"><b id="kpi-outstanding">₹0.00</b><span>Outstanding</span></div>
+        <div class="kpi bad"><b id="kpi-overdue">₹0.00</b><span>Overdue</span></div>
+        <div class="kpi"><b id="kpi-collected">₹0.00</b><span>Collected this month</span></div>
+        <div class="kpi"><b id="kpi-salesm">₹0.00</b><span>Sales this month</span></div>
+        <div class="kpi"><b id="kpi-products">0</b><span>Active products</span></div>
+      </div>
+      <div class="quick">
+        <button onclick="go('sale')">+ New sale<span>Scooter or accessory, cash or finance</span></button>
+        <button onclick="go('payment')">+ Payment / installment<span>Search by phone, enter amount received</span></button>
+        <button onclick="go('search')">Customer search<span>Type +91 number or last 10 digits</span></button>
+        <button onclick="go('overdue')">Overdue list<span>Missed installment dates</span></button>
+      </div>
+    </section>
+
+    <section class="page" id="sale">
+      <div class="hero"><h2>New sale</h2><p>Yellow boxes are typed. Grey figures calculate. Save writes the customer, sale and deposit in one tap.</p></div>
+      <div class="grid2">
+        <div class="card">
+          <h3>1. Customer</h3>
+          <label>Mobile number</label>
+          <input id="s-phone" placeholder="+919988209494" oninput="onSalePhone()" />
+          <div class="hint" id="s-match">Type a mobile number</div>
+          <label>Customer name</label><input id="s-name" />
+          <div class="row">
+            <div><label>Alt number</label><input id="s-alt" /></div>
+            <div><label>City</label><input id="s-city" /></div>
+          </div>
+          <label>Address</label><input id="s-address" />
+          <label>Notes</label><input id="s-notes" />
+        </div>
+        <div class="card">
+          <h3>2. Product &amp; price</h3>
+          <label>Product</label><select id="s-product" onchange="onSaleProduct()"></select>
+          <div class="row">
+            <div><label>Sale date</label><input id="s-date" type="date" oninput="updateSalePreview()" /></div>
+            <div><label>Invoice</label><input id="s-invoice" /></div>
+          </div>
+          <div class="row">
+            <div><label>Qty</label><input id="s-qty" type="number" min="1" oninput="updateSalePreview()" /></div>
+            <div><label>Selling price (₹)</label><input id="s-price" type="number" oninput="updateSalePreview()" /></div>
+          </div>
+          <div class="row">
+            <div><label>Discount (₹)</label><input id="s-discount" type="number" oninput="updateSalePreview()" /></div>
+            <div><label>Advance / deposit (₹)</label><input id="s-advance" type="number" oninput="updateSalePreview()" /></div>
+          </div>
+          <label>Serial (optional)</label><input id="s-serial" />
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>3. Finance (leave term 0 for cash)</h3>
+          <div class="row">
+            <div><label>Interest rate (0.10 = 10%)</label><input id="s-rate" type="number" step="0.01" oninput="updateSalePreview()" /></div>
+            <div><label>Term (months)</label><input id="s-term" type="number" min="0" oninput="updateSalePreview()" /></div>
+          </div>
+          <label>First installment date</label>
+          <input id="s-first" type="date" oninput="updateSalePreview()" />
+          <div class="hint" id="s-suggest"></div>
+          <div class="hint" id="s-dates"></div>
+          <p class="hint">12 months: <b id="cmp-12"></b><br>24 months: <b id="cmp-24"></b><br>36 months: <b id="cmp-36"></b></p>
+        </div>
+        <div class="card calc">
+          <h3>Calculated</h3>
+          <div class="preview">
+            Invoice <b id="s-invoice-amt">₹0.00</b><br>
+            Amount financed <b id="s-financed">₹0.00</b><br>
+            Interest <b id="s-interest">₹0.00</b><br>
+            Total to repay <b id="s-repay">₹0.00</b><br>
+            Monthly installment <b id="s-monthly">—</b><br>
+            Product profit <b id="s-gp">₹0.00</b> · Finance profit <b id="s-fp">₹0.00</b>
+          </div>
+          <div class="actions">
+            <button class="btn primary" onclick="saveSale()">Save sale</button>
+          </div>
+          <div class="msg" id="s-msg"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="payment">
+      <div class="hero"><h2>New payment / installment</h2><p>Amount does not have to equal one installment. Partial, extra and full payoff are allowed.</p></div>
+      <div class="grid2">
+        <div class="card">
+          <h3>Find the account</h3>
+          <label>Mobile number</label>
+          <input id="p-phone" list="phone-list" oninput="onPayPhone()" placeholder="+91… or last 10 digits" />
+          <datalist id="phone-list"></datalist>
+          <label>Invoice / sale (if more than one)</label>
+          <select id="p-invoice" onchange="updatePaySnap()"></select>
+          <label>Payment date</label><input id="p-date" type="date" />
+          <label>Amount received (₹)</label><input id="p-amount" type="number" step="0.01" oninput="updatePaySnap()" />
+          <div class="row">
+            <div><label>Method</label>
+              <select id="p-method"><option>Cash</option><option>Bank Transfer</option><option>UPI</option><option>Card</option></select>
+            </div>
+            <div><label>Category</label>
+              <select id="p-cat">
+                <option>INSTALLMENT</option><option>PARTIAL</option><option>DEPOSIT</option>
+                <option>SETTLEMENT</option><option>EXTRA</option>
+              </select>
+            </div>
+          </div>
+          <label>Notes</label><input id="p-notes" />
+          <div class="actions"><button class="btn primary" onclick="savePayment()">Save payment</button></div>
+          <div class="msg" id="p-msg"></div>
+        </div>
+        <div class="card">
+          <h3>Account snapshot</h3>
+          <div class="preview" id="p-snap">Pick a phone to see the account.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="search">
+      <div class="hero"><h2>Customer search</h2><p>Works with +91, 91, or the last 10 digits.</p></div>
+      <div class="searchbar">
+        <input id="q-phone" placeholder="+919988209494" oninput="renderSearch()" />
+        <button class="btn navy" onclick="renderSearch()">Search</button>
+      </div>
+      <div id="q-result"></div>
+    </section>
+
+    <section class="page" id="overdue">
+  <div class="hero"><div><h2>Overdue & missed payments</h2><p>Track every unpaid installment and follow up faster.</p></div><div class="hero-actions"><button class="btn navy" onclick="exportListing('overdue')">⇩ Export Excel</button></div></div>
+  <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Overdue accounts</span><input class="search-input" id="od-search" placeholder="Search customer, phone, sale..." oninput="renderOverdue()"><select id="od-size" onchange="renderOverdue()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="od-count"></span></div><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Phone</th><th>Sale</th><th>Due date</th><th>Expected</th><th>Outstanding</th><th>Late</th><th>Status</th></tr></thead><tbody id="od-body"></tbody></table></div><div class="pagination" id="od-pagination"></div></div>
+</section>
+
+    <section class="page" id="products">
+  <div class="hero"><div><h2>Products</h2><p>Manage scooters, accessories, service packs and pricing.</p></div><div class="hero-actions"><button class="btn navy" onclick="exportListing('products')">⇩ Export Excel</button></div></div>
+  <div class="card"><h3>Add or update a product</h3><div class="row"><div><label>Code</label><input id="pr-code" placeholder="ESC-A"></div><div><label>Name</label><input id="pr-name"></div></div><div class="row"><div><label>Model</label><input id="pr-model"></div><div><label>Category</label><select id="pr-cat"><option>Scooter</option><option>Accessory</option><option>Service</option></select></div></div><div class="row"><div><label>Cost</label><input id="pr-cost" type="number"></div><div><label>Selling price</label><input id="pr-price" type="number"></div></div><div class="actions"><button class="btn primary" onclick="saveProduct()">Save product</button><button class="btn ghost" onclick="clearProductForm()">Clear</button></div><div class="msg" id="pr-msg"></div></div>
+  <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Product catalogue</span><input class="search-input" id="pr-search" placeholder="Search code, name, model, category..." oninput="renderProducts()"><select id="pr-status" onchange="renderProducts()"><option value="all">All</option><option value="active">Active</option><option value="inactive">Inactive</option></select><select id="pr-size" onchange="renderProducts()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="pr-count"></span></div><div class="table-wrap"><table><thead><tr><th>Code</th><th>Product</th><th>Model</th><th>Category</th><th>Cost</th><th>Price</th><th>Margin</th><th>Status</th><th>Actions</th></tr></thead><tbody id="pr-body"></tbody></table></div><div class="pagination" id="pr-pagination"></div></div>
+</section>
+
+    <section class="page" id="customers">
+  <div class="hero"><div><h2>Customers</h2><p>One clean view of every customer, account balance and status.</p></div><div class="hero-actions"><button class="btn navy" onclick="exportListing('customers')">⇩ Export Excel</button></div></div>
+  <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Customer directory</span><input class="search-input" id="cu-search" placeholder="Search name, phone, city, ID..." oninput="renderCustomers()"><select id="cu-status" onchange="renderCustomers()"><option value="all">All status</option><option>OVERDUE</option><option>CURRENT</option><option>PAID IN FULL</option></select><select id="cu-size" onchange="renderCustomers()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="cu-count"></span></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Customer</th><th>Phone</th><th>City</th><th>Sales</th><th>Outstanding</th><th>Status</th><th>Actions</th></tr></thead><tbody id="cu-body"></tbody></table></div><div class="pagination" id="cu-pagination"></div></div>
+</section>
+
+    <section class="page" id="sales">
+  <div class="hero"><div><h2>Sales register</h2><p>Complete sales ledger with finance, collection and outstanding status.</p></div><div class="hero-actions"><button class="btn navy" onclick="exportListing('sales')">⇩ Export Excel</button><button class="btn primary" onclick="go('sale')">＋ New sale</button></div></div>
+  <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Sales ledger</span><input class="search-input" id="sa-search" placeholder="Search customer, phone, invoice, product..." oninput="renderSales()"><select id="sa-status" onchange="renderSales()"><option value="all">All status</option><option>OVERDUE</option><option>CURRENT</option><option>DUE TODAY</option><option>PAID IN FULL</option><option>CASH</option></select><select id="sa-size" onchange="renderSales()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="sa-count"></span></div><div class="table-wrap"><table><thead><tr><th>Sale</th><th>Customer</th><th>Phone</th><th>Invoice</th><th>Date</th><th>Product</th><th>Invoice ₹</th><th>Advance</th><th>Term</th><th>Monthly</th><th>Outstanding</th><th>Status</th><th>Actions</th></tr></thead><tbody id="sa-body"></tbody></table></div><div class="pagination" id="sa-pagination"></div></div>
+</section>
+
+    <section class="page" id="payments">
+  <div class="hero"><div><h2>Payments</h2><p>Every collection, installment and settlement in one register.</p></div><div class="hero-actions"><button class="btn navy" onclick="exportListing('payments')">⇩ Export Excel</button><button class="btn primary" onclick="go('payment')">＋ Record payment</button></div></div>
+  <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Payment register</span><input class="search-input" id="py-search" placeholder="Search customer, phone, sale, payment ID..." oninput="renderPayments()"><select id="py-method" onchange="renderPayments()"><option value="all">All methods</option><option>Cash</option><option>Bank Transfer</option><option>UPI</option><option>Card</option></select><select id="py-size" onchange="renderPayments()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="py-count"></span></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Date</th><th>Customer</th><th>Phone</th><th>Sale</th><th>Amount</th><th>Method</th><th>Category</th><th>Actions</th></tr></thead><tbody id="py-body"></tbody></table></div><div class="pagination" id="py-pagination"></div></div>
+</section>
+
+    <section class="page" id="settings">
+  <div class="hero"><div><h2>Settings</h2><p>Configure business identity, finance defaults and account behaviour.</p></div></div>
+  <div class="settings-grid"><div class="card"><h3>Business & finance</h3><label>Business name</label><input id="set-name"><div class="row"><div><label>Currency code</label><input id="set-cur"></div><div><label>Currency symbol</label><input id="set-sym"></div></div><div class="row"><div><label>Interest method</label><select id="set-method"><option>FLAT_ANNUAL</option><option>FLAT_TOTAL</option></select></div><div><label>Default rate</label><input id="set-rate" type="number" step="0.01"></div></div><div class="row"><div><label>Default term (months)</label><input id="set-term" type="number"></div><div><label>Due-soon days</label><input id="set-soon" type="number"></div></div><div class="actions"><button class="btn primary" onclick="saveSettings()">Save settings</button><button class="btn danger" onclick="resetDemo()">Restore sample data</button></div><div class="msg" id="set-msg"></div></div><div class="card"><h3>System</h3><div class="preview"><b>Indian Rupees (INR)</b><br>All amounts use Indian numbering such as ₹1,00,000.00.<br><br><b>Data storage</b><br>SQLite database through the Malhi Enterprise API.<br><br><b>Excel exports</b><br>Every listing has its own Export Excel button. No JSON backup/download controls are shown here.</div></div></div>
+</section>
+  </div>
+  <script>
+
+const USERS = [
+  { id: "navi", name: "Navi Malhi", pin: "2525", role: "Manager" }
+];
+
+const API_BASE = window.location.protocol === "file:"
+  ? "http://localhost:3000"
+  : window.location.origin;
+
+let state = {
+  settings: {
+    business: "Malhi Enterprise",
+    currency: "INR",
+    symbol: "₹",
+    method: "FLAT_ANNUAL",
+    defaultRate: 0.10,
+    defaultTerm: 24,
+    dueSoonDays: 7,
+    autoBackup: true
+  },
+  products: [],
+  customers: [],
+  sales: [],
+  payments: [],
+  audit: []
+};
+
+let session = null;
+let selectedUser = null;
+let apiOnline = false;
+
+function $(id) { return document.getElementById(id); }
+
+function esc(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function money(n) {
+  const v = Number(n || 0);
+  const settings = state.settings || {};
+  const currency = String(settings.currency || "INR").toUpperCase();
+
+  if (currency === "INR") {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(v);
+  }
+
+  const symbol = settings.symbol || "₹";
+  return symbol + v.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function pad(n, w) { return String(n).padStart(w, "0"); }
+
+function todayISO() {
+  const d = new Date();
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0")
+  ].join("-");
+}
+
+function digits(s) { return String(s || "").replace(/\D/g, ""); }
+
+function last10(s) {
+  return digits(s).slice(-10);
+}
+
+function phonesMatch(a, b) {
+  const da = digits(a), db = digits(b);
+  if (!da || !db) return false;
+  return da === db || last10(da) === last10(db);
+}
+
+function addMonths(iso, n) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1 + n, 1);
+  const last = new Date(dt.getFullYear(), dt.getMonth() + 1, 0).getDate();
+  dt.setDate(Math.min(d, last));
+  return [
+    dt.getFullYear(),
+    String(dt.getMonth() + 1).padStart(2, "0"),
+    String(dt.getDate()).padStart(2, "0")
+  ].join("-");
+}
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  const [y, m, d] = String(iso).slice(0, 10).split("-");
+  if (!y || !m || !d) return String(iso);
+  const names = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${d} ${names[Number(m) - 1] || m} ${y}`;
+}
+
+function nextId(list, prefix, field) {
+  let max = 0;
+  (list || []).forEach((row) => {
+    const v = String(row[field] || "");
+    if (v.startsWith(prefix)) {
+      const n = parseInt(v.slice(prefix.length), 10);
+      if (Number.isFinite(n) && n > max) max = n;
+    }
+  });
+  return prefix + pad(max + 1, 4);
+}
+
+function calcInterest(principal, rate, term, method) {
+  const p = Number(principal) || 0;
+  const r = Number(rate) || 0;
+  const t = Number(term) || 0;
+  if (p <= 0 || t <= 0) return 0;
+  if (String(method).toUpperCase() === "FLAT_TOTAL") return round2(p * r);
+  return round2(p * r * (t / 12));
+}
+
+function round2(n) {
+  return Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+}
+
+async function apiFetch(path, options = {}) {
+  const config = { ...options, headers: { ...(options.headers || {}) } };
+  if (config.body && typeof config.body !== "string") {
+    config.headers["Content-Type"] = "application/json";
+    config.body = JSON.stringify(config.body);
+  }
+
+  const res = await fetch(API_BASE + path, config);
+  let data = {};
+  try { data = await res.json(); } catch (_) {}
+
+  if (!res.ok || data.success === false) {
+    throw new Error(data.error || `API request failed (${res.status})`);
+  }
+  return data;
+}
+
+function setApiStatus(online, message) {
+  apiOnline = online;
+  const text = message || (online ? "API connected" : "API offline");
+  const top = document.querySelector(".top");
+  if (top) top.title = text;
+}
+
+async function loadAllData(showError = false) {
+  try {
+    const [settingsRes, customersRes, productsRes, salesRes, paymentsRes] = await Promise.all([
+      apiFetch("/api/settings"),
+      apiFetch("/api/customers"),
+      apiFetch("/api/products?includeInactive=true"),
+      apiFetch("/api/sales?limit=5000"),
+      apiFetch("/api/payments?limit=5000")
+    ]);
+
+    state.settings = { ...state.settings, ...(settingsRes.settings || {}) };
+    state.customers = customersRes.customers || [];
+    state.products = (productsRes.products || []).map(p => ({
+      ...p,
+      active: p.active === true || p.active === 1
+    }));
+    state.sales = salesRes.sales || [];
+    state.payments = paymentsRes.payments || [];
+
+    setApiStatus(true);
+    return true;
+  } catch (error) {
+    setApiStatus(false);
+    console.error("API load failed:", error);
+    if (showError) alert("Cannot connect to Malhi Enterprise API.\n\n" + error.message + "\n\nMake sure server.js is running on http://localhost:3000.");
+    return false;
+  }
+}
+
+async function refreshAfterMutation(page) {
+  await loadAllData(true);
+  if (page) go(page);
+  else renderHome();
+}
+
+function productByCode(code) {
+  return state.products.find(x => String(x.code) === String(code)) || null;
+}
+
+function findCustByPhone(phone) {
+  return state.customers.find(c =>
+    phonesMatch(c.phone, phone) || phonesMatch(c.alt, phone)
+  );
+}
+
+function saleFinance(sale) {
+  if (!sale) {
+    return {
+      invoice: 0, financed: 0, interest: 0, repay: 0, monthly: 0,
+      cost: 0, productProfit: 0, financeProfit: 0, received: 0,
+      outstanding: 0, name: ""
+    };
+  }
+
+  const product = productByCode(sale.product);
+  const qty = Number(sale.qty) || 1;
+  const price = Number(sale.price) || 0;
+  const discount = Number(sale.discount) || 0;
+  const advance = Number(sale.advance) || 0;
+
+  const invoice = sale.invoice !== undefined && sale.invoice !== null && Number.isFinite(Number(sale.invoice))
+    ? Number(sale.invoice)
+    : Math.max(0, qty * price - discount);
+
+  const financed = Number(sale.financed ?? Math.max(0, invoice - advance));
+  const interest = Number(sale.interest ?? calcInterest(
+    financed,
+    Number(sale.rate) || 0,
+    Number(sale.term) || 0,
+    state.settings.method
+  ));
+  const repay = Number(sale.repay ?? (financed > 0 ? financed + interest : 0));
+  const monthly = Number(sale.monthly ?? (
+    Number(sale.term) > 0 && repay > 0 ? round2(repay / Number(sale.term)) : 0
+  ));
+  const received = Number(sale.received ?? state.payments
+    .filter(p => p.saleId === sale.id)
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0));
+  const outstanding = Number(sale.outstanding ?? Math.max(0, invoice + interest - received));
+  const cost = Number(sale.product?.cost ?? product?.cost ?? 0);
+  const productProfit = Number(sale.productProfit ?? round2(invoice - cost * qty));
+
+  return {
+    invoice: round2(invoice),
+    financed: round2(financed),
+    interest: round2(interest),
+    repay: round2(repay),
+    monthly: round2(monthly),
+    cost,
+    productProfit: round2(productProfit),
+    financeProfit: round2(Number(sale.financeProfit ?? interest)),
+    received: round2(received),
+    outstanding: round2(outstanding),
+    name: sale.productName || sale.product?.name || product?.name || sale.product || ""
+  };
+}
+
+function paymentsForSale(saleId) {
+  return state.payments.filter(x => x.saleId === saleId);
+}
+
+function scheduleForSale(sale) {
+  if (!sale) return [];
+  const f = saleFinance(sale);
+  const term = Number(sale.term) || 0;
+  if (f.financed <= 0 || term <= 0 || !sale.firstDue) return [];
+
+  let remainingCash = paymentsForSale(sale.id)
+    .filter(x => String(x.category || "").toUpperCase() !== "DEPOSIT")
+    .reduce((sum, x) => sum + Number(x.amount || 0), 0);
+
+  const rows = [];
+  for (let i = 1; i <= term; i++) {
+    const due = addMonths(sale.firstDue, i - 1);
+    const expected = i === term
+      ? round2(f.repay - f.monthly * (term - 1))
+      : f.monthly;
+    const allocated = round2(Math.max(0, Math.min(expected, remainingCash)));
+    remainingCash = round2(remainingCash - allocated);
+    const left = round2(Math.max(0, expected - allocated));
+    const overdueDays = left > 0.009 && due < todayISO()
+      ? Math.floor((new Date(todayISO()) - new Date(due)) / 86400000)
+      : 0;
+
+    let status = "UPCOMING";
+    if (left <= 0.009) status = "PAID";
+    else if (allocated > 0.009 && due < todayISO()) status = "PARTIAL";
+    else if (due === todayISO()) status = "DUE TODAY";
+    else if (due < todayISO()) status = "OVERDUE";
+
+    rows.push({ installment: i, n: i, due, expected, allocated, left, overdueDays, status });
+  }
+  return rows;
+}
+
+function saleStatus(sale) {
+  if (sale && sale.status) return sale.status;
+  const f = saleFinance(sale);
+  if (f.outstanding <= 0.009) return "PAID IN FULL";
+  const schedule = scheduleForSale(sale);
+  if (schedule.some(x => x.status === "OVERDUE" || (x.status === "PARTIAL" && x.overdueDays > 0))) return "OVERDUE";
+  if (schedule.some(x => x.status === "DUE TODAY")) return "DUE TODAY";
+  if (f.financed > 0) return "CURRENT";
+  return "CASH";
+}
+
+function customerStatus(cust) {
+  if (!cust) return "—";
+  if (cust.status) return cust.status;
+  const sales = state.sales.filter(x => x.custId === cust.id);
+  if (!sales.length) return "—";
+  if (sales.some(x => saleStatus(x) === "OVERDUE")) return "OVERDUE";
+  const out = sales.reduce((sum, x) => sum + saleFinance(x).outstanding, 0);
+  return out <= 0.009 ? "PAID IN FULL" : "CURRENT";
+}
+
+function showMsg(id, text, ok) {
+  const el = $(id);
+  if (!el) return;
+  el.className = "msg show " + (ok ? "ok" : "err");
+  el.textContent = text;
+}
+
+function go(page) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav button").forEach(b =>
+    b.classList.toggle("active", b.dataset.page === page)
+  );
+  const target = $(page);
+  if (target) target.classList.add("active");
+
+  if (page === "home") renderHome();
+  if (page === "sale") prepareSale();
+  if (page === "payment") preparePayment();
+  if (page === "search") renderSearch();
+  if (page === "overdue") renderOverdue();
+  if (page === "products") renderProducts();
+  if (page === "customers") renderCustomers();
+  if (page === "sales") renderSales();
+  if (page === "payments") renderPayments();
+  if (page === "settings") renderSettings();
+}
+
+async function renderHome() {
+  try {
+    const res = await apiFetch("/api/dashboard");
+    console.log(res)
+    const k = res.kpis || {};
+    $("kpi-customers").textContent = Number(k.customers || 0);
+    $("kpi-outstanding").textContent = money(k.outstanding);
+    $("kpi-overdue").textContent = money(k.overdue);
+    $("kpi-collected").textContent = money(k.collectedThisMonth);
+    $("kpi-salesm").textContent = money(k.salesThisMonth);
+    $("kpi-products").textContent = Number(k.activeProducts || 0);
+    setApiStatus(true);
+  } catch (e) {
+    renderHomeFromCache();
+  }
+}
+
+function renderHomeFromCache() {
+  const out = state.sales.reduce((a, x) => a + saleFinance(x).outstanding, 0);
+  const od = state.sales.filter(x => saleStatus(x) === "OVERDUE")
+    .reduce((a, x) => a + saleFinance(x).outstanding, 0);
+  const month = todayISO().slice(0, 7);
+  const collected = state.payments
+    .filter(x => String(x.date).startsWith(month))
+    .reduce((a, x) => a + Number(x.amount || 0), 0);
+  const salesM = state.sales
+  console.log(salesM)
+    .filter(x => String(x.date).startsWith(month))
+    .reduce((a, x) => a + saleFinance(x).invoice, 0);
+
+  $("kpi-customers").textContent = state.customers.length;
+  $("kpi-outstanding").textContent = money(out);
+  $("kpi-overdue").textContent = money(od);
+  $("kpi-collected").textContent = money(collected);
+  $("kpi-salesm").textContent = money(salesM);
+  $("kpi-products").textContent = state.products.filter(x => x.active).length;
+}
+
+function fillProductSelect(sel) {
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Choose product</option>' +
+    state.products
+      .filter(x => x.active)
+      .map(x => `<option value="${esc(x.code)}">${esc(x.code)} — ${esc(x.name)} (${money(x.price)})</option>`)
+      .join("");
+}
+
+function prepareSale() {
+  fillProductSelect($("s-product"));
+  if ($("s-date") && !$("s-date").value) $("s-date").value = todayISO();
+  if ($("s-rate") && !$("s-rate").value) $("s-rate").value = state.settings.defaultRate;
+  if ($("s-term") && !$("s-term").value) $("s-term").value = state.settings.defaultTerm;
+  if ($("s-qty") && !$("s-qty").value) $("s-qty").value = 1;
+  if ($("s-discount") && $("s-discount").value === "") $("s-discount").value = 0;
+  if ($("s-advance") && $("s-advance").value === "") $("s-advance").value = 0;
+  if ($("s-invoice") && !$("s-invoice").value) {
+    $("s-invoice").value = "INV-" + pad(state.sales.length + 1001, 4);
+  }
+  updateSalePreview();
+}
+
+function onSalePhone() {
+  const phone = $("s-phone").value.trim();
+  const c = findCustByPhone(phone);
+  if ($("s-match")) {
+    $("s-match").textContent = phone
+      ? (c ? "EXISTING CUSTOMER — " + c.id : "NEW CUSTOMER")
+      : "Type a mobile number";
+  }
+
+  if (c) {
+    $("s-name").value = c.name || "";
+    $("s-alt").value = c.alt || "";
+    $("s-address").value = c.address || "";
+    $("s-city").value = c.city || "";
+    $("s-notes").value = c.notes || "";
+  }
+  updateSalePreview();
+}
+
+function onSaleProduct() {
+  const p = productByCode($("s-product").value);
+  if (p) $("s-price").value = p.price;
+  updateSalePreview();
+}
+
+function updateSalePreview() {
+  const qty = Number($("s-qty")?.value) || 1;
+  const price = Number($("s-price")?.value) || 0;
+  const discount = Number($("s-discount")?.value) || 0;
+  const advance = Number($("s-advance")?.value) || 0;
+  const rate = Number($("s-rate")?.value) || 0;
+  const term = Number($("s-term")?.value) || 0;
+  const first = $("s-first")?.value || "";
+
+  const invoice = Math.max(0, qty * price - discount);
+  const financed = Math.max(0, invoice - advance);
+  const interest = calcInterest(financed, rate, term, state.settings.method);
+  const repay = financed > 0 ? financed + interest : 0;
+  const monthly = term > 0 && repay > 0 ? round2(repay / term) : 0;
+  const prod = productByCode($("s-product")?.value);
+  const gp = prod ? round2(invoice - Number(prod.cost || 0) * qty) : 0;
+
+  if ($("s-invoice-amt")) $("s-invoice-amt").textContent = money(invoice);
+  if ($("s-financed")) $("s-financed").textContent = money(financed);
+  if ($("s-interest")) $("s-interest").textContent = money(interest);
+  if ($("s-repay")) $("s-repay").textContent = money(repay);
+  if ($("s-monthly")) $("s-monthly").textContent = monthly ? money(monthly) : "—";
+  if ($("s-gp")) $("s-gp").textContent = money(gp);
+  if ($("s-fp")) $("s-fp").textContent = money(interest);
+
+  const sug = $("s-date")?.value ? addMonths($("s-date").value, 1) : "";
+  if ($("s-suggest")) $("s-suggest").textContent = sug ? "Suggested first due: " + fmtDate(sug) : "";
+
+  if ($("s-dates")) {
+    $("s-dates").textContent = first && term > 0
+      ? `1st ${fmtDate(first)} · 2nd ${fmtDate(addMonths(first,1))} · 3rd ${fmtDate(addMonths(first,2))} · last ${fmtDate(addMonths(first,term-1))}`
+      : "Type first installment date for a finance sale. Later months stay on that same day.";
+  }
+
+  [["12",12],["24",24],["36",36]].forEach(([id, t]) => {
+    const i = calcInterest(financed, rate, t, state.settings.method);
+    const m = financed > 0 ? round2((financed + i) / t) : 0;
+    if ($(`cmp-${id}`)) $("cmp-" + id).textContent = financed > 0
+      ? money(m) + " / mo, interest " + money(i)
+      : "—";
+  });
+}
+
+async function saveSale() {
+  const phone = $("s-phone").value.trim();
+  const name = $("s-name").value.trim();
+  const date = $("s-date").value;
+  const code = $("s-product").value;
+  const price = Number($("s-price").value);
+  const term = Number($("s-term").value) || 0;
+  const first = $("s-first").value;
+
+  if (!phone) return showMsg("s-msg", "Type the mobile number.", false);
+  if (!name) return showMsg("s-msg", "Type the customer name.", false);
+  if (!date) return showMsg("s-msg", "Type the sale date.", false);
+  if (!code) return showMsg("s-msg", "Choose a product.", false);
+  if (!(price > 0)) return showMsg("s-msg", "Type the selling price.", false);
+  if (term > 0 && !first) return showMsg("s-msg", "Finance sale needs a first installment date.", false);
+
+  try {
+    let cust = findCustByPhone(phone);
+
+    if (!cust) {
+      cust = {
+        id: nextId(state.customers, "C", "id"),
+        name,
+        phone,
+        alt: $("s-alt").value.trim(),
+        address: $("s-address").value.trim(),
+        city: $("s-city").value.trim(),
+        notes: $("s-notes").value.trim()
+      };
+    } else {
+      cust = {
+        ...cust,
+        name,
+        phone,
+        alt: $("s-alt").value.trim(),
+        address: $("s-address").value.trim(),
+        city: $("s-city").value.trim(),
+        notes: $("s-notes").value.trim()
+      };
+    }
+
+    const sale = {
+      id: nextId(state.sales, "S", "id"),
+      custId: cust.id,
+      name: cust.name,
+      phone: cust.phone,
+      invoice: $("s-invoice").value.trim() || ("INV-" + pad(state.sales.length + 1001, 4)),
+      date,
+      product: code,
+      serial: $("s-serial").value.trim(),
+      qty: Number($("s-qty").value) || 1,
+      price,
+      discount: Number($("s-discount").value) || 0,
+      advance: Number($("s-advance").value) || 0,
+      rate: Number($("s-rate").value) || 0,
+      term,
+      firstDue: first,
+      notes: $("s-notes").value.trim()
+    };
+
+    const deposit = sale.advance > 0 ? {
+      id: nextId(state.payments, "P", "id"),
+      date,
+      custId: cust.id,
+      name: cust.name,
+      phone: cust.phone,
+      saleId: sale.id,
+      invoice: sale.invoice,
+      amount: sale.advance,
+      method: "Cash",
+      category: "DEPOSIT",
+      notes: "Advance on " + sale.invoice
+    } : null;
+
+    const result = await apiFetch("/api/sales", {
+      method: "POST",
+      body: { sale, customer: cust, deposit }
+    });
+
+    await loadAllData(true);
+    maybeAutoDownload();
+
+    const saved = result.sale || state.sales.find(x => x.id === sale.id) || sale;
+    const f = saleFinance(saved);
+    showMsg("s-msg", "Sale saved: " + sale.id + " · " + cust.name + " · Monthly " + (f.monthly ? money(f.monthly) : "cash"), true);
+
+    $("s-product").value = "";
+    $("s-price").value = "";
+    $("s-advance").value = 0;
+    $("s-first").value = "";
+    $("s-serial").value = "";
+    updateSalePreview();
+    renderHome();
+  } catch (e) {
+    showMsg("s-msg", e.message, false);
+  }
+}
+
+function preparePayment() {
+  const list = $("phone-list");
+  if (list) {
+    list.innerHTML = state.customers
+      .map(x => `<option value="${esc(x.phone)}">${esc(x.name)}</option>`)
+      .join("");
+  }
+  $("p-date").value = todayISO();
+  $("p-amount").value = "";
+  $("p-method").value = "Cash";
+  $("p-cat").value = "INSTALLMENT";
+  $("p-notes").value = "";
+  $("p-invoice").innerHTML = '<option value="">Auto — latest sale for this phone</option>';
+  $("p-snap").innerHTML = "Pick a phone to see the account.";
+}
+
+function onPayPhone() {
+  const phone = $("p-phone").value.trim();
+  const cust = findCustByPhone(phone);
+  const box = $("p-invoice");
+
+  if (!cust) {
+    $("p-snap").innerHTML = phone
+      ? "Phone not found. Save a sale for this customer first."
+      : "Pick a phone to see the account.";
+    box.innerHTML = '<option value="">No sales</option>';
+    return;
+  }
+
+  const sales = state.sales.filter(x => x.custId === cust.id);
+  box.innerHTML = sales.length
+    ? sales.map(x => {
+        const f = saleFinance(x);
+        return `<option value="${esc(x.id)}">${esc(x.id)} · ${esc(x.invoice)} · ${esc(f.name)} · outstanding ${money(f.outstanding)}</option>`;
+      }).join("")
+    : '<option value="">No sales</option>';
+
+  updatePaySnap();
+}
+
+function updatePaySnap() {
+  const selected = $("p-invoice").value;
+  const sale = state.sales.find(x => x.id === selected) ||
+    state.sales.filter(x => phonesMatch(x.phone, $("p-phone").value)).slice(-1)[0];
+
+  if (!sale) {
+    $("p-snap").innerHTML = "No sale found.";
+    return;
+  }
+
+  const f = saleFinance(sale);
+  const amount = Number($("p-amount").value) || 0;
+  const status = saleStatus(sale);
+
+  $("p-snap").innerHTML = `<b>${esc(sale.name)}</b> · ${esc(sale.id)} · ${esc(f.name)}<br>
+    Monthly ${f.monthly ? money(f.monthly) : "—"} · Already paid ${money(f.received)} · Outstanding <b>${money(f.outstanding)}</b><br>
+    Status <span class="badge ${badgeClass(status)}">${esc(status)}</span>
+    ${amount ? "<br>After this payment: " + money(Math.max(0, f.outstanding - amount)) : ""}`;
+}
+
+async function savePayment() {
+  const phone = $("p-phone").value.trim();
+  const cust = findCustByPhone(phone);
+  const sale = state.sales.find(x => x.id === $("p-invoice").value) ||
+    (cust && state.sales.filter(x => x.custId === cust.id).slice(-1)[0]);
+  const amount = Number($("p-amount").value);
+  const date = $("p-date").value;
+
+  if (!cust) return showMsg("p-msg", "Phone not found.", false);
+  if (!sale) return showMsg("p-msg", "No sale found.", false);
+  if (!date) return showMsg("p-msg", "Type the payment date.", false);
+  if (!(amount > 0)) return showMsg("p-msg", "Type the amount received.", false);
+
+  const payment = {
+    id: nextId(state.payments, "P", "id"),
+    date,
+    custId: cust.id,
+    name: cust.name,
+    phone: cust.phone,
+    saleId: sale.id,
+    invoice: sale.invoice,
+    amount,
+    method: $("p-method").value,
+    category: $("p-cat").value,
+    notes: $("p-notes").value.trim()
+  };
+
+  try {
+    await apiFetch("/api/payments", { method: "POST", body: payment });
+    await loadAllData(true);
+    maybeAutoDownload();
+
+    const updatedSale = state.sales.find(x => x.id === sale.id);
+    showMsg("p-msg", "Payment saved. New outstanding: " + money(saleFinance(updatedSale).outstanding), true);
+    $("p-amount").value = "";
+    updatePaySnap();
+    renderHome();
+  } catch (e) {
+    showMsg("p-msg", e.message, false);
+  }
+}
+
+async function renderSearch() {
+  const phone = $("q-phone").value.trim();
+  const box = $("q-result");
+  if (!box) return;
+
+  if (!phone) {
+    box.innerHTML = "<p class='hint'>Type a name, phone, invoice, sale ID or payment ID.</p>";
+    return;
+  }
+
+  try {
+    let data;
+    if (/^\+?\d[\d\s()-]{7,}$/.test(phone)) {
+      data = await apiFetch("/api/search/phone/" + encodeURIComponent(phone));
+      const cust = data.customer;
+      const sales = data.sales || [];
+      const pays = data.payments || [];
+      renderCustomerSearchResult(box, cust, sales, pays, Number(data.outstanding || 0));
+    } else {
+      data = await apiFetch("/api/search?q=" + encodeURIComponent(phone));
+      renderGlobalSearchResult(box, data);
+    }
+  } catch (e) {
+    box.innerHTML = `<div class="card"><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+function renderCustomerSearchResult(box, cust, sales, pays, out) {
+  box.innerHTML = `<div class="card"><h3>${esc(cust.name)} · ${esc(cust.id)}</h3>
+    <p>${esc(cust.phone)} · ${esc(cust.city || "")} · ${esc(cust.address || "")}</p>
+    <p>Status <span class="badge ${badgeClass(customerStatus(cust))}">${esc(customerStatus(cust))}</span> · Outstanding <b>${money(out)}</b> · ${sales.length} sale(s)</p></div>
+    <div class="table-wrap"><table><thead><tr><th>Sale</th><th>Product</th><th>Invoice</th><th>Monthly</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>
+    ${sales.map(x => {
+      const f = saleFinance(x);
+      const st = saleStatus(x);
+      return `<tr><td>${esc(x.id)}</td><td>${esc(f.name)}</td><td>${esc(x.invoice)}</td><td>${f.monthly ? money(f.monthly) : "—"}</td><td>${money(f.outstanding)}</td><td><span class="badge ${badgeClass(st)}">${esc(st)}</span></td></tr>`;
+    }).join("") || "<tr><td colspan='6'>No sales</td></tr>"}
+    </tbody></table></div>
+    <h3>Payments</h3>
+    <div class="table-wrap"><table><thead><tr><th>ID</th><th>Date</th><th>Sale</th><th>Amount</th><th>Type</th></tr></thead><tbody>
+    ${pays.map(x => `<tr><td>${esc(x.id)}</td><td>${fmtDate(x.date)}</td><td>${esc(x.saleId)}</td><td>${money(x.amount)}</td><td>${esc(x.category)}</td></tr>`).join("") || "<tr><td colspan='5'>None</td></tr>"}
+    </tbody></table></div>`;
+}
+
+function renderGlobalSearchResult(box, data) {
+  const customers = data.customers || [];
+  const sales = data.sales || [];
+  const payments = data.payments || [];
+
+  box.innerHTML = `
+    <div class="card"><h3>Search results</h3>
+      <p>${customers.length} customer(s), ${sales.length} sale(s), ${payments.length} payment(s)</p>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Customer</th><th>Phone</th><th>City</th><th>Outstanding</th><th>Status</th></tr></thead>
+      <tbody>${customers.map(c => `<tr>
+        <td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.city || "")}</td>
+        <td>${money(c.outstanding || 0)}</td><td><span class="badge ${badgeClass(c.status || "—")}">${esc(c.status || "—")}</span></td>
+      </tr>`).join("") || "<tr><td colspan='5'>No customers</td></tr>"}</tbody>
+    </table></div>
+    <h3>Sales</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Name</th><th>Invoice</th><th>Product</th><th>Outstanding</th><th>Status</th></tr></thead>
+      <tbody>${sales.map(s => `<tr>
+        <td>${esc(s.id)}</td><td>${esc(s.name)}</td><td>${esc(s.invoice)}</td><td>${esc(s.productName || s.product)}</td>
+        <td>${money(s.outstanding || 0)}</td><td><span class="badge ${badgeClass(s.status)}">${esc(s.status || "")}</span></td>
+      </tr>`).join("") || "<tr><td colspan='6'>No sales</td></tr>"}</tbody>
+    </table></div>
+    <h3>Payments</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Date</th><th>Name</th><th>Amount</th><th>Category</th></tr></thead>
+      <tbody>${payments.map(p => `<tr>
+        <td>${esc(p.id)}</td><td>${fmtDate(p.date)}</td><td>${esc(p.name)}</td><td>${money(p.amount)}</td><td>${esc(p.category)}</td>
+      </tr>`).join("") || "<tr><td colspan='5'>No payments</td></tr>"}</tbody>
+    </table></div>`;
+}
+
+async function renderOverdue() {
+  const body = $("od-body");
+  if (!body) return;
+
+  try {
+    const data = await apiFetch("/api/overdue");
+    const rows = data.overdue || [];
+
+    body.innerHTML = rows.length
+      ? rows.map(r => `<tr>
+          <td>${esc(r.name)}</td>
+          <td>${esc(r.phone)}</td>
+          <td>${esc(r.saleId)}</td>
+          <td>${fmtDate(r.due)}</td>
+          <td>${money(r.left)}</td>
+          <td>${Number(r.overdueDays || 0)} days</td>
+          <td><span class="badge bad">OVERDUE</span></td>
+        </tr>`).join("")
+      : "<tr><td colspan='7'>No missed installments.</td></tr>";
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan='7'>${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderProducts() {
+  const body = $("pr-body");
+  if (!body) return;
+
+  body.innerHTML = state.products.map((x, i) => `<tr>
+    <td>${esc(x.code)}</td>
+    <td>${esc(x.name)}</td>
+    <td>${esc(x.model)}</td>
+    <td>${esc(x.category)}</td>
+    <td>${money(x.cost)}</td>
+    <td>${money(x.price)}</td>
+    <td>${x.active ? "YES" : "NO"}</td>
+    <td>
+      <button class="btn ghost" onclick="editProduct('${esc(x.code)}')">Edit</button>
+      <button class="btn ghost" onclick="toggleProduct('${esc(x.code)}')">${x.active ? "Hide" : "Show"}</button>
+      <button class="btn danger" onclick="deleteProduct('${esc(x.code)}')">Delete</button>
+    </td>
+  </tr>`).join("");
+}
+
+function clearProductForm() {
+  ["pr-code","pr-name","pr-model","pr-cost","pr-price"].forEach(id => {
+    if ($(id)) $(id).value = "";
+  });
+  if ($("pr-cat")) $("pr-cat").value = "Scooter";
+}
+
+function editProduct(code) {
+  const p = productByCode(code);
+  if (!p) return;
+  $("pr-code").value = p.code;
+  $("pr-name").value = p.name || "";
+  $("pr-model").value = p.model || "";
+  $("pr-cat").value = p.category || "Scooter";
+  $("pr-cost").value = p.cost || 0;
+  $("pr-price").value = p.price || 0;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function saveProduct() {
+  const code = $("pr-code").value.trim().toUpperCase();
+  if (!code || !$("pr-name").value.trim()) {
+    return showMsg("pr-msg", "Code and name required.", false);
+  }
+
+  const existing = productByCode(code);
+  const row = {
+    code,
+    name: $("pr-name").value.trim(),
+    model: $("pr-model").value.trim() || "—",
+    category: $("pr-cat").value,
+    cost: Number($("pr-cost").value) || 0,
+    price: Number($("pr-price").value) || 0,
+    active: existing ? existing.active : true
+  };
+
+  try {
+    await apiFetch(
+      existing ? "/api/products/" + encodeURIComponent(code) : "/api/products",
+      { method: existing ? "PUT" : "POST", body: row }
+    );
+    clearProductForm();
+    await loadAllData(true);
+    renderProducts();
+    showMsg("pr-msg", "Product saved: " + code, true);
+    renderHome();
+  } catch (e) {
+    showMsg("pr-msg", e.message, false);
+  }
+}
+
+async function toggleProduct(code) {
+  try {
+    await apiFetch("/api/products/" + encodeURIComponent(code) + "/toggle", { method: "PATCH" });
+    await loadAllData(true);
+    renderProducts();
+  } catch (e) {
+    showMsg("pr-msg", e.message, false);
+  }
+}
+
+async function deleteProduct(code) {
+  if (!confirm("Delete product " + code + "?")) return;
+  try {
+    await apiFetch("/api/products/" + encodeURIComponent(code), { method: "DELETE" });
+    await loadAllData(true);
+    renderProducts();
+    renderHome();
+  } catch (e) {
+    showMsg("pr-msg", e.message, false);
+  }
+}
+
+function renderCustomers() {
+  const body = $("cu-body");
+  if (!body) return;
+
+  const q = ($("cu-search")?.value || "").trim().toLowerCase();
+  const rows = state.customers.filter(c => {
+    if (!q) return true;
+    return [c.id, c.name, c.phone, c.alt, c.city]
+      .some(v => String(v || "").toLowerCase().includes(q));
+  });
+
+  body.innerHTML = rows.map(c => {
+    const sales = state.sales.filter(x => x.custId === c.id);
+    const out = Number(c.outstanding ?? sales.reduce((a, x) => a + saleFinance(x).outstanding, 0));
+    const status = c.status || customerStatus(c);
+
+    return `<tr>
+      <td>${esc(c.id)}</td>
+      <td>${esc(c.name)}</td>
+      <td>${esc(c.phone)}</td>
+      <td>${esc(c.city || "")}</td>
+      <td>${Number(c.salesCount ?? sales.length)}</td>
+      <td>${money(out)}</td>
+      <td><span class="badge ${badgeClass(status)}">${esc(status)}</span></td>
+      <td>
+        <button class="btn ghost" onclick="editCustomer('${esc(c.id)}')">Edit</button>
+        <button class="btn danger" onclick="deleteCustomer('${esc(c.id)}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join("") || "<tr><td colspan='8'>No customers found.</td></tr>";
+}
+
+function editCustomer(id) {
+  const c = state.customers.find(x => x.id === id);
+  if (!c) return;
+
+  const name = prompt("Customer name:", c.name || "");
+  if (name === null) return;
+  const phone = prompt("Mobile number:", c.phone || "");
+  if (phone === null) return;
+  const city = prompt("City:", c.city || "");
+  if (city === null) return;
+  const address = prompt("Address:", c.address || "");
+  if (address === null) return;
+  const alt = prompt("Alternate number:", c.alt || "");
+  if (alt === null) return;
+  const notes = prompt("Notes:", c.notes || "");
+  if (notes === null) return;
+
+  apiFetch("/api/customers/" + encodeURIComponent(id), {
+    method: "PUT",
+    body: { name, phone, city, address, alt, notes }
+  }).then(async () => {
+    await loadAllData(true);
+    renderCustomers();
+    renderHome();
+  }).catch(e => alert(e.message));
+}
+
+async function deleteCustomer(id) {
+  if (!confirm("Delete customer " + id + "? Customers with sales cannot be deleted.")) return;
+  try {
+    await apiFetch("/api/customers/" + encodeURIComponent(id), { method: "DELETE" });
+    await loadAllData(true);
+    renderCustomers();
+    renderHome();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function renderSales() {
+  const body = $("sa-body");
+  if (!body) return;
+
+  body.innerHTML = state.sales.map(x => {
+    const f = saleFinance(x);
+    const status = saleStatus(x);
+    return `<tr>
+      <td>${esc(x.id)}</td>
+      <td>${esc(x.name)}</td>
+      <td>${esc(x.phone)}</td>
+      <td>${esc(x.invoice)}</td>
+      <td>${fmtDate(x.date)}</td>
+      <td>${esc(f.name)}</td>
+      <td>${money(f.invoice)}</td>
+      <td>${money(x.advance)}</td>
+      <td>${Number(x.term) || "—"}</td>
+      <td>${f.monthly ? money(f.monthly) : "—"}</td>
+      <td>${money(f.outstanding)}</td>
+      <td><span class="badge ${badgeClass(status)}">${esc(status)}</span></td>
+      <td>
+        <button class="btn ghost" onclick="viewSale('${esc(x.id)}')">View</button>
+        <button class="btn danger" onclick="deleteSale('${esc(x.id)}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join("") || "<tr><td colspan='13'>No sales found.</td></tr>";
+}
+
+async function viewSale(id) {
+  try {
+    const data = await apiFetch("/api/sales/" + encodeURIComponent(id));
+    const s = data.sale;
+    const f = saleFinance(s);
+    const schedule = data.schedule || [];
+    alert(
+      `Sale: ${s.id}\n` +
+      `Customer: ${s.name}\n` +
+      `Invoice: ${s.invoice}\n` +
+      `Product: ${f.name}\n` +
+      `Invoice amount: ${money(f.invoice)}\n` +
+      `Advance: ${money(s.advance)}\n` +
+      `Financed: ${money(f.financed)}\n` +
+      `Interest: ${money(f.interest)}\n` +
+      `Total repay: ${money(f.repay)}\n` +
+      `Monthly: ${f.monthly ? money(f.monthly) : "Cash"}\n` +
+      `Received: ${money(f.received)}\n` +
+      `Outstanding: ${money(f.outstanding)}\n` +
+      `Status: ${s.status || saleStatus(s)}\n` +
+      (schedule.length ? `\nInstallments: ${schedule.length}` : "")
+    );
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function deleteSale(id) {
+  if (!confirm("Delete sale " + id + " and all payments linked to it?")) return;
+  try {
+    await apiFetch("/api/sales/" + encodeURIComponent(id), { method: "DELETE" });
+    await loadAllData(true);
+    renderSales();
+    renderHome();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function renderPayments() {
+  const body = $("py-body");
+  if (!body) return;
+
+  body.innerHTML = [...state.payments].reverse().map(x => `<tr>
+    <td>${esc(x.id)}</td>
+    <td>${fmtDate(x.date)}</td>
+    <td>${esc(x.name)}</td>
+    <td>${esc(x.phone)}</td>
+    <td>${esc(x.saleId)}</td>
+    <td>${money(x.amount)}</td>
+    <td>${esc(x.method)}</td>
+    <td>${esc(x.category)}</td>
+    <td>
+      <button class="btn ghost" onclick="editPayment('${esc(x.id)}')">Edit</button>
+      <button class="btn danger" onclick="deletePayment('${esc(x.id)}')">Delete</button>
+    </td>
+  </tr>`).join("") || "<tr><td colspan='9'>No payments found.</td></tr>";
+}
+
+async function editPayment(id) {
+  const p = state.payments.find(x => x.id === id);
+  if (!p) return;
+
+  const amount = prompt("Payment amount (₹):", p.amount);
+  if (amount === null) return;
+  const date = prompt("Payment date (YYYY-MM-DD):", p.date);
+  if (date === null) return;
+  const method = prompt("Method (Cash / Bank Transfer / UPI / Card):", p.method);
+  if (method === null) return;
+  const category = prompt("Category:", p.category);
+  if (category === null) return;
+  const notes = prompt("Notes:", p.notes || "");
+  if (notes === null) return;
+
+  try {
+    await apiFetch("/api/payments/" + encodeURIComponent(id), {
+      method: "PUT",
+      body: { amount: Number(amount), date, method, category, notes }
+    });
+    await loadAllData(true);
+    renderPayments();
+    renderHome();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function deletePayment(id) {
+  if (!confirm("Delete payment " + id + "?")) return;
+  try {
+    await apiFetch("/api/payments/" + encodeURIComponent(id), { method: "DELETE" });
+    await loadAllData(true);
+    renderPayments();
+    renderHome();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function renderSettings() {
+  const s = state.settings || {};
+  $("set-name").value = s.business || "Malhi Enterprise";
+  $("set-cur").value = s.currency || "INR";
+  $("set-sym").value = s.symbol || "₹";
+  $("set-method").value = s.method || "FLAT_ANNUAL";
+  $("set-rate").value = s.defaultRate ?? 0.10;
+  $("set-term").value = s.defaultTerm ?? 24;
+  $("set-soon").value = s.dueSoonDays ?? 7;
+  if ($("set-auto")) $("set-auto").checked = !!s.autoBackup;
+}
+
+async function saveSettings() {
+  const settings = {
+    business: $("set-name").value.trim() || "Malhi Enterprise",
+    currency: $("set-cur").value.trim().toUpperCase() || "INR",
+    symbol: $("set-sym").value.trim() || "₹",
+    method: $("set-method").value,
+    defaultRate: Number($("set-rate").value) || 0,
+    defaultTerm: Number($("set-term").value) || 24,
+    dueSoonDays: Number($("set-soon").value) || 7,
+    autoBackup: $("set-auto") ? $("set-auto").checked : false
+  };
+
+  try {
+    const result = await apiFetch("/api/settings", { method: "PUT", body: settings });
+    state.settings = { ...state.settings, ...(result.settings || settings) };
+    await loadAllData(true);
+    renderSettings();
+    showMsg("set-msg", "Settings saved to SQLite.", true);
+    renderHome();
+  } catch (e) {
+    showMsg("set-msg", e.message, false);
+  }
+}
+
+async function exportData() {
+  try {
+    const res = await fetch(API_BASE + "/api/backup");
+    if (!res.ok) throw new Error("Backup API returned " + res.status);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "malhi-backup-" + todayISO() + ".json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showMsg("set-msg", "Database backup downloaded.", true);
+  } catch (e) {
+    showMsg("set-msg", "Backup failed: " + e.message, false);
+  }
+}
+
+async function importData(file) {
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    if (!Array.isArray(data.customers) ||
+        !Array.isArray(data.products) ||
+        !Array.isArray(data.sales) ||
+        !Array.isArray(data.payments)) {
+      throw new Error("Invalid Malhi backup format.");
+    }
+
+    if (!confirm("Restore this backup into SQLite? Existing database records will be replaced.")) return;
+
+    await apiFetch("/api/restore", { method: "POST", body: data });
+    await loadAllData(true);
+    renderSettings();
+    renderHome();
+    showMsg("set-msg", "Backup restored into SQLite.", true);
+  } catch (e) {
+    showMsg("set-msg", "Could not restore backup: " + e.message, false);
+  }
+}
+
+async function resetDemo() {
+  if (!confirm("Replace all customers, sales and payments with the sample database?")) return;
+
+  try {
+    await apiFetch("/api/reset", { method: "POST", body: {} });
+    await loadAllData(true);
+    renderSettings();
+    renderHome();
+    showMsg("set-msg", "Sample data restored in SQLite.", true);
+  } catch (e) {
+    showMsg("set-msg", e.message, false);
+  }
+}
+
+function maybeAutoDownload() {
+  // Automatic browser downloads are intentionally disabled here.
+  // The setting is still stored by the API and can be used for future scheduled backup logic.
+}
+
+function badgeClass(st) {
+  if (st === "OVERDUE") return "bad";
+  if (st === "DUE TODAY" || st === "PARTIAL") return "warn";
+  if (st === "PAID IN FULL" || st === "PAID" || st === "CASH") return "ok";
+  return "info";
+}
+
+function pickUser(id) {
+  selectedUser = USERS.find(u => u.id === id);
+  document.querySelectorAll(".who-btn").forEach(b =>
+    b.classList.toggle("active", b.dataset.id === id)
+  );
+
+  const pinWrap = $("pin-wrap");
+  if (pinWrap) pinWrap.classList.add("show");
+
+  const pinInput = $("pin");
+  if (pinInput) {
+    pinInput.value = "";
+    pinInput.focus();
+  }
+
+  if ($("login-err")) $("login-err").textContent =
+    "Enter PIN for " + selectedUser.name;
+}
+
+async function tryLogin() {
+  if (!selectedUser) {
+    $("login-err").textContent = "Tap your name first.";
+    return;
+  }
+
+  if ($("pin").value.trim() !== selectedUser.pin) {
+    $("login-err").textContent = "Wrong PIN.";
+    return;
+  }
+
+  const loaded = await loadAllData(true);
+  if (!loaded) return;
+
+  session = selectedUser;
+  $("login-screen").style.display = "none";
+  $("app").classList.add("show");
+  $("whoami").textContent = session.name + " · " + session.role;
+  go("home");
+}
+
+function logout() {
+  session = null;
+  selectedUser = null;
+  $("app").classList.remove("show");
+  $("login-screen").style.display = "flex";
+  $("pin").value = "";
+  $("pin-wrap").classList.remove("show");
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  const pinInput = $("pin");
+  if (pinInput) {
+    pinInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") tryLogin();
+    });
+  }
+
+  // Check API immediately so the user gets a clear connection failure.
+  try {
+    await apiFetch("/api/health");
+    setApiStatus(true);
+  } catch (e) {
+    setApiStatus(false);
+    console.warn("Malhi API is not running:", e.message);
+  }
+});
+
+
+// ===== Modern listing UI: client-side pagination + Excel exports =====
+const LIST_PAGE = {products:1, customers:1, sales:1, payments:1, overdue:1};
+function pageRows(key, rows, size) {
+  const total = rows.length, pages = Math.max(1, Math.ceil(total/size));
+  LIST_PAGE[key] = Math.min(Math.max(1, LIST_PAGE[key] || 1), pages);
+  const start=(LIST_PAGE[key]-1)*size;
+  return {rows:rows.slice(start,start+size), total, pages, start:start+1, end:Math.min(start+size,total)};
+}
+function paginate(key, total, pages, start, end, id) {
+  const el=$(id); if(!el)return;
+  if(!total){el.innerHTML='<div class="page-info">No records</div><div class="page-buttons"></div>';return;}
+  let nums=[]; const cur=LIST_PAGE[key];
+  const from=Math.max(1,cur-2), to=Math.min(pages,cur+2);
+  for(let i=from;i<=to;i++) nums.push(`<button class="${i===cur?'active':''}" onclick="LIST_PAGE['${key}']=${i};${key==='overdue'?'renderOverdue()':key==='products'?'renderProducts()':key==='customers'?'renderCustomers()':key==='sales'?'renderSales()':'renderPayments()'}">${i}</button>`);
+  el.innerHTML=`<div class="page-info">Showing ${start}-${end} of ${total}</div><div class="page-buttons"><button ${cur===1?'disabled':''} onclick="LIST_PAGE['${key}']=Math.max(1,${cur}-1);${key==='overdue'?'renderOverdue()':key==='products'?'renderProducts()':key==='customers'?'renderCustomers()':key==='sales'?'renderSales()':'renderPayments()'}">‹</button>${nums.join('')}<button ${cur===pages?'disabled':''} onclick="LIST_PAGE['${key}']=Math.min(${pages},${cur}+1);${key==='overdue'?'renderOverdue()':key==='products'?'renderProducts()':key==='customers'?'renderCustomers()':key==='sales'?'renderSales()':'renderPayments()'}">›</button></div>`;
+}
+function listSize(id){return Number($(id)?.value||10)||10}
+function excelEscape(value){
+  if(value===null||value===undefined)return '';
+  return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function exportXlsx(rows, sheet, filename){
+  // Dependency-free Excel export. Generates an Excel-compatible .xls workbook
+  // directly in the browser, so internet/CDN access is NOT required.
+  if(!Array.isArray(rows)) rows=[];
+  const headers=rows.length?Object.keys(rows[0]):[];
+  const tableRows=[];
+  if(headers.length) tableRows.push('<tr>'+headers.map(h=>'<th>'+excelEscape(h)+'</th>').join('')+'</tr>');
+  rows.forEach(row=>{
+    tableRows.push('<tr>'+headers.map(h=>{
+      const v=row[h];
+      const isNumber=typeof v==='number' && Number.isFinite(v);
+      return '<td'+(isNumber?' x:num="'+v+'"':'')+'>'+excelEscape(v)+'</td>';
+    }).join('')+'</tr>');
+  });
+  const safeSheet=String(sheet||'Export').replace(/[\\/:?*\[\]]/g,' ').slice(0,31)||'Export';
+  const html='<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>'+excelEscape(safeSheet)+'</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table border="1">'+tableRows.join('')+'</table></body></html>';
+  const blob=new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=(filename||'malhi-export')+'.xls';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportListing(type){
+  let rows=[];
+  if(type==='products') rows=state.products.map(p=>({Code:p.code,Product:p.name,Model:p.model,Category:p.category,Cost:Number(p.cost||0),Price:Number(p.price||0),Margin:Number(p.price||0)-Number(p.cost||0),Status:p.active?'Active':'Inactive'}));
+  if(type==='customers') rows=state.customers.map(c=>{const sales=state.sales.filter(x=>x.custId===c.id);const out=Number(c.outstanding??sales.reduce((a,x)=>a+saleFinance(x).outstanding,0));return {ID:c.id,Customer:c.name,Phone:c.phone,Alternate:c.alt||'',City:c.city||'',Sales:Number(c.salesCount??sales.length),Outstanding:out,Status:c.status||customerStatus(c)};});
+  if(type==='sales') rows=state.sales.map(x=>{const f=saleFinance(x);return {Sale:x.id,Customer:x.name,Phone:x.phone,Invoice:x.invoice,Date:x.date,Product:f.name,InvoiceAmount:f.invoice,Advance:Number(x.advance||0),Term:Number(x.term||0),Monthly:f.monthly,Received:f.received,Outstanding:f.outstanding,Status:saleStatus(x)};});
+  if(type==='payments') rows=[...state.payments].reverse().map(x=>({ID:x.id,Date:x.date,Customer:x.name,Phone:x.phone,Sale:x.saleId,Amount:Number(x.amount||0),Method:x.method,Category:x.category,Notes:x.notes||''}));
+  if(type==='overdue') rows=state.sales.flatMap(s=>scheduleForSale(s).filter(r=>r.status==='OVERDUE'||(r.status==='PARTIAL'&&r.overdueDays>0)).map(r=>({Customer:s.name,Phone:s.phone,Sale:s.id,Invoice:s.invoice,DueDate:r.due,Expected:r.expected,Outstanding:r.left,LateDays:r.overdueDays,Status:r.status})));
+  exportXlsx(rows,type==='overdue'?'Overdue':type[0].toUpperCase()+type.slice(1),`malhi-${type}-${todayISO()}`);
+}
+function renderProducts(){
+  const q=($("pr-search")?.value||'').toLowerCase().trim(), st=$("pr-status")?.value||'all';
+  let rows=state.products.filter(p=>(st==='all'||(st==='active'?p.active:!p.active)) && (!q||[p.code,p.name,p.model,p.category].some(v=>String(v||'').toLowerCase().includes(q))));
+  const pg=pageRows('products',rows,listSize('pr-size')); const body=$("pr-body");
+  body.innerHTML=pg.rows.map(p=>{const margin=Number(p.price||0)-Number(p.cost||0);return `<tr><td class="mono">${esc(p.code)}</td><td><b>${esc(p.name)}</b></td><td>${esc(p.model||'—')}</td><td>${esc(p.category||'')}</td><td>${money(p.cost)}</td><td class="amount">${money(p.price)}</td><td>${money(margin)}</td><td><span class="badge ${p.active?'ok':'bad'}">${p.active?'Active':'Inactive'}</span></td><td><button class="btn ghost small" onclick="editProduct('${esc(p.code)}')">Edit</button> <button class="btn ghost small" onclick="toggleProduct('${esc(p.code)}')">${p.active?'Hide':'Show'}</button> <button class="btn danger small" onclick="deleteProduct('${esc(p.code)}')">Delete</button></td></tr>`}).join('')||`<tr><td colspan="9" class="table-empty">No products match your filters.</td></tr>`;
+  $("pr-count").textContent=`${rows.length} product${rows.length===1?'':'s'}`; paginate('products',pg.total,pg.pages,pg.start,pg.end,'pr-pagination');
+}
+function renderCustomers(){
+  const q=($("cu-search")?.value||'').toLowerCase().trim(), st=$("cu-status")?.value||'all';
+  let rows=state.customers.filter(c=>{const sales=state.sales.filter(x=>x.custId===c.id);const status=c.status||customerStatus(c);return (!q||[c.id,c.name,c.phone,c.alt,c.city].some(v=>String(v||'').toLowerCase().includes(q)))&&(st==='all'||status===st)});
+  const pg=pageRows('customers',rows,listSize('cu-size')); const body=$("cu-body");
+  body.innerHTML=pg.rows.map(c=>{const sales=state.sales.filter(x=>x.custId===c.id);const out=Number(c.outstanding??sales.reduce((a,x)=>a+saleFinance(x).outstanding,0));const status=c.status||customerStatus(c);return `<tr><td class="mono">${esc(c.id)}</td><td><b>${esc(c.name)}</b></td><td>${esc(c.phone)}</td><td>${esc(c.city||'—')}</td><td>${Number(c.salesCount??sales.length)}</td><td class="amount">${money(out)}</td><td><span class="badge ${badgeClass(status)}">${esc(status)}</span></td><td><button class="btn ghost small" onclick="editCustomer('${esc(c.id)}')">Edit</button> <button class="btn danger small" onclick="deleteCustomer('${esc(c.id)}')">Delete</button></td></tr>`}).join('')||`<tr><td colspan="8" class="table-empty">No customers match your filters.</td></tr>`;
+  $("cu-count").textContent=`${rows.length} customer${rows.length===1?'':'s'}`; paginate('customers',pg.total,pg.pages,pg.start,pg.end,'cu-pagination');
+}
+function renderSales(){
+  const q=($("sa-search")?.value||'').toLowerCase().trim(), st=$("sa-status")?.value||'all';
+  let rows=state.sales.filter(x=>{const f=saleFinance(x),status=saleStatus(x);return (!q||[x.id,x.name,x.phone,x.invoice,f.name].some(v=>String(v||'').toLowerCase().includes(q)))&&(st==='all'||status===st)}).slice().reverse();
+  const pg=pageRows('sales',rows,listSize('sa-size')); const body=$("sa-body");
+  body.innerHTML=pg.rows.map(x=>{const f=saleFinance(x),status=saleStatus(x);return `<tr><td class="mono">${esc(x.id)}</td><td><b>${esc(x.name)}</b></td><td>${esc(x.phone)}</td><td class="mono">${esc(x.invoice)}</td><td>${fmtDate(x.date)}</td><td>${esc(f.name)}</td><td class="amount">${money(f.invoice)}</td><td>${money(x.advance)}</td><td>${Number(x.term)||'—'}</td><td>${f.monthly?money(f.monthly):'—'}</td><td class="amount">${money(f.outstanding)}</td><td><span class="badge ${badgeClass(status)}">${esc(status)}</span></td><td><button class="btn ghost small" onclick="viewSale('${esc(x.id)}')">View</button> <button class="btn danger small" onclick="deleteSale('${esc(x.id)}')">Delete</button></td></tr>`}).join('')||`<tr><td colspan="13" class="table-empty">No sales match your filters.</td></tr>`;
+  $("sa-count").textContent=`${rows.length} sale${rows.length===1?'':'s'}`; paginate('sales',pg.total,pg.pages,pg.start,pg.end,'sa-pagination');
+}
+function renderPayments(){
+  const q=($("py-search")?.value||'').toLowerCase().trim(), method=$("py-method")?.value||'all';
+  let rows=[...state.payments].reverse().filter(x=>(!q||[x.id,x.name,x.phone,x.saleId,x.category,x.method].some(v=>String(v||'').toLowerCase().includes(q)))&&(method==='all'||x.method===method));
+  const pg=pageRows('payments',rows,listSize('py-size')); const body=$("py-body");
+  body.innerHTML=pg.rows.map(x=>`<tr><td class="mono">${esc(x.id)}</td><td>${fmtDate(x.date)}</td><td><b>${esc(x.name)}</b></td><td>${esc(x.phone)}</td><td class="mono">${esc(x.saleId)}</td><td class="amount">${money(x.amount)}</td><td>${esc(x.method)}</td><td><span class="badge info">${esc(x.category)}</span></td><td><button class="btn ghost small" onclick="editPayment('${esc(x.id)}')">Edit</button> <button class="btn danger small" onclick="deletePayment('${esc(x.id)}')">Delete</button></td></tr>`).join('')||`<tr><td colspan="9" class="table-empty">No payments match your filters.</td></tr>`;
+  $("py-count").textContent=`${rows.length} payment${rows.length===1?'':'s'}`; paginate('payments',pg.total,pg.pages,pg.start,pg.end,'py-pagination');
+}
+function renderOverdue(){
+  const q=($("od-search")?.value||'').toLowerCase().trim(); let rows=[];
+  state.sales.forEach(s=>scheduleForSale(s).filter(r=>r.status==='OVERDUE'||(r.status==='PARTIAL'&&r.overdueDays>0)).forEach(r=>rows.push({...r,sale:s})));
+  rows=rows.filter(r=>!q||[r.sale.name,r.sale.phone,r.sale.id,r.sale.invoice,r.due].some(v=>String(v||'').toLowerCase().includes(q))).sort((a,b)=>String(a.due).localeCompare(String(b.due)));
+  const pg=pageRows('overdue',rows,listSize('od-size')); const body=$("od-body");
+  body.innerHTML=pg.rows.map(r=>`<tr><td><b>${esc(r.sale.name)}</b></td><td>${esc(r.sale.phone)}</td><td class="mono">${esc(r.sale.id)}</td><td>${fmtDate(r.due)}</td><td>${money(r.expected)}</td><td class="amount">${money(r.left)}</td><td>${r.overdueDays} days</td><td><span class="badge ${r.status==='PARTIAL'?'warn':'bad'}">${esc(r.status)}</span></td></tr>`).join('')||`<tr><td colspan="8" class="table-empty">🎉 No overdue installments.</td></tr>`;
+  $("od-count").textContent=`${rows.length} overdue installment${rows.length===1?'':'s'}`; paginate('overdue',pg.total,pg.pages,pg.start,pg.end,'od-pagination');
+}
+// Update API indicator text when connection state changes.
+const _setApiStatus=setApiStatus;
+setApiStatus=function(online,message){_setApiStatus(online,message);const p=$("api-pill");if(p){p.textContent=online?'● API Connected':'● API Offline';p.style.color=online?'#b9ffe7':'#ffd0d0'}};
+
+  </script>
+</body>
+</html>
