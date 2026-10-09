@@ -25,14 +25,14 @@
     <div class="login-box">
       <h1>MALHI ENTERPRISE</h1>
       <p>Customer, Sales &amp; Finance Management</p>
-      <div class="who">
-        <button type="button" class="who-btn" data-id="navi" onclick="pickUser('navi')">Navi Malhi<small>Manager · tap your name, then enter PIN 2525</small></button>
+      <div class="who" style="text-align:left;gap:8px">
+        <label for="login-username" style="color:#d7e5f5">Username</label>
+        <input id="login-username" autocomplete="username" placeholder="Enter username" style="color:#172033;letter-spacing:normal;text-align:left;width:100%;font-size:16px" />
+        <label for="pin" style="color:#d7e5f5">Password / PIN</label>
+        <input id="pin" type="password" autocomplete="current-password" placeholder="Enter password or PIN" style="color:#172033;letter-spacing:normal;text-align:left;width:100%;font-size:16px" onkeydown="if(event.key==='Enter')tryLogin()" />
+        <button type="button" onclick="tryLogin()" style="display:block;width:100%;background:var(--gold);color:#182b46;border:0;border-radius:12px;padding:14px;font-weight:900;font-size:16px">Sign in</button>
       </div>
-      <div class="pin-wrap" id="pin-wrap">
-        <input id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" />
-        <button type="button" onclick="tryLogin()">Open shop</button>
-      </div>
-      <p class="login-err" id="login-err">Tap Navi Malhi, then enter PIN 2525.</p>
+      <p class="login-err" id="login-err">Select your account and enter your PIN.</p>
     </div>
   </div>
 
@@ -44,9 +44,11 @@
     <div class="nav">
       <button class="active" data-page="home" onclick="go('home')">⌂ Dashboard</button>
       <button data-page="sale" onclick="go('sale')">＋ New Sale</button>
+      <button data-page="old-sales" onclick="go('old-sales')">↺ Old Sales</button>
       <button data-page="payment" onclick="go('payment')">₹ Payment</button>
       <button data-page="search" onclick="go('search')">⌕ Search</button>
       <button data-page="overdue" onclick="go('overdue')">⚠ Overdue</button>
+      <button data-page="installments" onclick="go('installments')">◷ Upcoming & Due</button>
       <button data-page="products" onclick="go('products')">▦ Products</button>
       <button data-page="customers" onclick="go('customers')">♙ Customers</button>
       <button data-page="sales" onclick="go('sales')">▤ Sales</button>
@@ -125,7 +127,9 @@
         <div class="card calc">
           <h3>Calculated</h3>
           <div class="preview">
-            Invoice <b id="s-invoice-amt">₹0.00</b><br>
+            Product subtotal <b id="s-subtotal">₹0.00</b><br>
+            File charges <b id="s-file-charges">₹1,500.00</b><br>
+            Invoice total <b id="s-invoice-amt">₹0.00</b><br>
             Amount financed <b id="s-financed">₹0.00</b><br>
             Interest <b id="s-interest">₹0.00</b><br>
             Total to repay <b id="s-repay">₹0.00</b><br>
@@ -137,6 +141,49 @@
           </div>
           <div class="msg" id="s-msg"></div>
         </div>
+      </div>
+    </section>
+
+    <section class="page" id="old-sales">
+      <div class="hero"><h2>Old sale entry</h2><p>Enter an existing sale using the same pricing and finance rules as New Sale, then record how many EMIs were already paid.</p></div>
+      <div class="grid2">
+        <div class="card"><h3>1. Customer</h3>
+          <label>Mobile number</label><input id="os-phone" oninput="onOldSalePhone()" placeholder="+919988209494" />
+          <div class="hint" id="os-match">Type a mobile number</div>
+          <label>Customer name</label><input id="os-name" />
+          <div class="row"><div><label>Alt number</label><input id="os-alt" /></div><div><label>City</label><input id="os-city" /></div></div>
+          <label>Address</label><input id="os-address" />
+          <label>Notes</label><input id="os-notes" />
+        </div>
+        <div class="card"><h3>2. Product &amp; price</h3>
+          <label>Product</label><select id="os-product" onchange="onOldSaleProduct()"></select>
+          <div class="row"><div><label>Original sale date</label><input id="os-date" type="date" oninput="updateOldSalePreview()" /></div><div><label>Invoice</label><input id="os-invoice" /></div></div>
+          <div class="row"><div><label>Qty</label><input id="os-qty" type="number" min="1" value="1" oninput="updateOldSalePreview()" /></div><div><label>Selling price (₹)</label><input id="os-price" type="number" min="0" oninput="updateOldSalePreview()" /></div></div>
+          <div class="row"><div><label>Discount (₹)</label><input id="os-discount" type="number" value="0" oninput="updateOldSalePreview()" /></div><div><label>Advance / deposit (₹)</label><input id="os-deposit" type="number" min="0" value="0" oninput="updateOldSalePreview()" /></div></div>
+          <label>Serial (optional)</label><input id="os-serial" />
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>3. Finance &amp; previous installments</h3>
+          <div class="row"><div><label>Interest rate (monthly %, e.g. 1.5)</label><input id="os-rate" type="number" min="0" step="0.1" value="1.5" oninput="updateOldSalePreview()" /></div><div><label>Finance term (months)</label><input id="os-term" type="number" min="1" value="12" oninput="updateOldSalePreview()" /></div></div>
+          <div class="row"><div><label>EMIs already paid</label><input id="os-paid-emis" type="number" min="0" value="0" oninput="updateOldSalePreview()" /></div><div><label>Next installment date</label><input id="os-next-date" type="date" oninput="updateOldSalePreview()" /></div></div>
+          <p class="hint">File charges of ₹1,500 are automatically added when a product is selected. Old-sale interest is calculated as financed amount × monthly rate × original term.</p>
+        </div>
+        <div class="card calc"><h3>Calculated old account</h3><div class="preview">
+          Product subtotal <b id="os-calc-subtotal">₹0.00</b><br>
+          File charges <b id="os-calc-file">₹1,500.00</b><br>
+          Invoice total <b id="os-calc-price">₹0.00</b><br>
+          Advance / deposit <b id="os-calc-deposit">₹0.00</b><br>
+          Amount financed <b id="os-calc-financed">₹0.00</b><br>
+          Total interest <b id="os-calc-interest">₹0.00</b><br>
+          Total EMI repayment <b id="os-calc-total">₹0.00</b><br>
+          Monthly EMI <b id="os-calc-monthly">₹0.00</b><br>
+          EMIs already paid <b id="os-calc-paid">0</b><br>
+          Amount paid in EMIs <b id="os-calc-collected">₹0.00</b><br>
+          EMIs remaining <b id="os-calc-remaining-emis">0</b><br>
+          Remaining EMI balance <b id="os-calc-balance">₹0.00</b><br>
+          Next installment <b id="os-calc-next">—</b>
+        </div><div class="actions"><button class="btn primary" onclick="saveOldSale()">Save old sale</button></div><div class="msg" id="os-msg"></div></div>
       </div>
     </section>
 
@@ -188,6 +235,11 @@
   <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Overdue accounts</span><input class="search-input" id="od-search" placeholder="Search customer, phone, sale..." oninput="renderOverdue()"><select id="od-size" onchange="renderOverdue()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="od-count"></span></div><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Phone</th><th>Sale</th><th>Due date</th><th>Expected</th><th>Outstanding</th><th>Late</th><th>Status</th></tr></thead><tbody id="od-body"></tbody></table></div><div class="pagination" id="od-pagination"></div></div>
 </section>
 
+    <section class="page" id="installments">
+      <div class="hero"><div><h2>Upcoming & due installments</h2><p>Unpaid EMIs due this month and installments due within the next 5 days. Send reminders directly on WhatsApp.</p></div><div class="hero-actions"><button class="btn navy" onclick="renderInstallments()">↻ Refresh</button></div></div>
+      <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Installment reminders</span><input class="search-input" id="ins-search" placeholder="Search customer, phone, sale..." oninput="renderInstallments()"><select id="ins-size" onchange="renderInstallments()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="ins-count"></span></div><div class="table-wrap"><table><thead><tr><th>Customer</th><th>WhatsApp number</th><th>Sale</th><th>Due date</th><th>EMI amount</th><th>Days left / late</th><th>Status</th><th>Action</th></tr></thead><tbody id="ins-body"></tbody></table></div><div class="pagination" id="ins-pagination"></div></div>
+    </section>
+
     <section class="page" id="products">
   <div class="hero"><div><h2>Products</h2><p>Manage scooters, accessories, service packs and pricing.</p></div><div class="hero-actions"><button class="btn navy" onclick="exportListing('products')">⇩ Export Excel</button></div></div>
   <div class="card"><h3>Add or update a product</h3><div class="row"><div><label>Code</label><input id="pr-code" placeholder="ESC-A"></div><div><label>Name</label><input id="pr-name"></div></div><div class="row"><div><label>Model</label><input id="pr-model"></div><div><label>Category</label><select id="pr-cat"><option>Scooter</option><option>Accessory</option><option>Service</option></select></div></div><div class="row"><div><label>Cost</label><input id="pr-cost" type="number"></div><div><label>Selling price</label><input id="pr-price" type="number"></div></div><div class="actions"><button class="btn primary" onclick="saveProduct()">Save product</button><button class="btn ghost" onclick="clearProductForm()">Clear</button></div><div class="msg" id="pr-msg"></div></div>
@@ -201,7 +253,7 @@
 
     <section class="page" id="sales">
   <div class="hero"><div><h2>Sales register</h2><p>Complete sales ledger with finance, collection and outstanding status.</p></div><div class="hero-actions"><button class="btn navy" onclick="exportListing('sales')">⇩ Export Excel</button><button class="btn primary" onclick="go('sale')">＋ New sale</button></div></div>
-  <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Sales ledger</span><input class="search-input" id="sa-search" placeholder="Search customer, phone, invoice, product..." oninput="renderSales()"><select id="sa-status" onchange="renderSales()"><option value="all">All status</option><option>OVERDUE</option><option>CURRENT</option><option>DUE TODAY</option><option>PAID IN FULL</option><option>CASH</option></select><select id="sa-size" onchange="renderSales()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="sa-count"></span></div><div class="table-wrap"><table><thead><tr><th>Sale</th><th>Customer</th><th>Phone</th><th>Invoice</th><th>Date</th><th>Product</th><th>Invoice ₹</th><th>Advance</th><th>Term</th><th>Monthly</th><th>Outstanding</th><th>Status</th><th>Actions</th></tr></thead><tbody id="sa-body"></tbody></table></div><div class="pagination" id="sa-pagination"></div></div>
+  <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Sales ledger</span><input class="search-input" id="sa-search" placeholder="Search customer, phone, invoice, product..." oninput="renderSales()"><select id="sa-status" onchange="renderSales()"><option value="all">All status</option><option>OVERDUE</option><option>CURRENT</option><option>DUE TODAY</option><option>PAID IN FULL</option><option>CASH</option></select><select id="sa-size" onchange="renderSales()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="sa-count"></span></div><div class="table-wrap"><table><thead><tr><th>Sale</th><th>Customer</th><th>Phone</th><th>Invoice</th><th>Date</th><th>Due Date</th><th>Product</th><th>Invoice ₹</th><th>Advance</th><th>Term</th><th>Monthly</th><th>Outstanding</th><th>Status</th><th>Actions</th></tr></thead><tbody id="sa-body"></tbody></table></div><div class="pagination" id="sa-pagination"></div></div>
 </section>
 
     <section class="page" id="payments">
@@ -211,14 +263,14 @@
 
     <section class="page" id="settings">
   <div class="hero"><div><h2>Settings</h2><p>Configure business identity, finance defaults and account behaviour.</p></div></div>
-  <div class="settings-grid"><div class="card"><h3>Business & finance</h3><label>Business name</label><input id="set-name"><div class="row"><div><label>Currency code</label><input id="set-cur"></div><div><label>Currency symbol</label><input id="set-sym"></div></div><div class="row"><div><label>Interest method</label><select id="set-method"><option>FLAT_ANNUAL</option><option>FLAT_TOTAL</option></select></div><div><label>Default rate</label><input id="set-rate" type="number" step="0.01"></div></div><div class="row"><div><label>Default term (months)</label><input id="set-term" type="number"></div><div><label>Due-soon days</label><input id="set-soon" type="number"></div></div><div class="actions"><button class="btn primary" onclick="saveSettings()">Save settings</button><button class="btn danger" onclick="resetDemo()">Restore sample data</button></div><div class="msg" id="set-msg"></div></div><div class="card"><h3>System</h3><div class="preview"><b>Indian Rupees (INR)</b><br>All amounts use Indian numbering such as ₹1,00,000.00.<br><br><b>Data storage</b><br>SQLite database through the Malhi Enterprise API.<br><br><b>Excel exports</b><br>Every listing has its own Export Excel button. No JSON backup/download controls are shown here.</div></div></div>
+  <div class="settings-grid"><div class="card"><h3>Business & finance</h3><label>Business name</label><input id="set-name"><div class="row"><div><label>Currency code</label><input id="set-cur"></div><div><label>Currency symbol</label><input id="set-sym"></div></div><div class="row"><div><label>Interest method</label><select id="set-method"><option>FLAT_ANNUAL</option><option>FLAT_TOTAL</option></select></div><div><label>Default rate</label><input id="set-rate" type="number" step="0.01"></div></div><div class="row"><div><label>Default term (months)</label><input id="set-term" type="number"></div><div><label>Due-soon days</label><input id="set-soon" type="number"></div></div><div class="actions"><button class="btn primary" onclick="saveSettings()">Save settings</button><button class="btn danger" onclick="resetDemo()">Restore sample data</button></div><div class="msg" id="set-msg"></div></div><div class="card"><h3>Account & security</h3><p class="hint">Change your account password. It will work across devices using the same shop database.</p><label for="pin-current">Current password / PIN</label><input id="pin-current" type="password" autocomplete="current-password" placeholder="Enter current password"><label for="pin-new">New password / PIN</label><input id="pin-new" type="password" autocomplete="new-password" placeholder="Choose a new password"><label for="pin-confirm">Confirm new password / PIN</label><input id="pin-confirm" type="password" autocomplete="new-password" placeholder="Re-enter new password"><div class="actions"><button class="btn primary" onclick="changeLoginPin()">Update password</button></div><div class="msg" id="pin-change-msg"></div><div class="hint">Password changes are saved through the backend API, not browser storage.</div></div><div class="card"><h3>System</h3><div class="preview"><b>Indian Rupees (INR)</b><br>All amounts use Indian numbering such as ₹1,00,000.00.<br><br><b>Data storage</b><br>PostgreSQL database through the Malhi Enterprise API.<br><br><b>Excel exports</b><br>Every listing has its own Export Excel button. No JSON backup/download controls are shown here.</div></div></div>
 </section>
   </div>
   <script>
 
-const USERS = [
-  { id: "navi", name: "Navi Malhi", pin: "2525", role: "Manager" }
-];
+const USERS = [];
+let authToken = null;
+let authUser = null;
 
 const API_BASE = window.location.protocol === "file:"
   ? "http://localhost:3000"
@@ -349,6 +401,7 @@ function round2(n) {
 
 async function apiFetch(path, options = {}) {
   const config = { ...options, headers: { ...(options.headers || {}) } };
+  if (authToken) config.headers.Authorization = "Bearer " + authToken;
   if (config.body && typeof config.body !== "string") {
     config.headers["Content-Type"] = "application/json";
     config.body = JSON.stringify(config.body);
@@ -382,13 +435,85 @@ async function loadAllData(showError = false) {
     ]);
 
     state.settings = { ...state.settings, ...(settingsRes.settings || {}) };
-    state.customers = customersRes.customers || [];
+    state.customers = (customersRes.customers || []).map(c => ({
+      ...c,
+      id: c.id || c.custid || c.customerId,
+      alt: c.alt ?? c.alternate ?? c.alternatePhone ?? "",
+      address: c.address ?? c.addr ?? ""
+    }));
     state.products = (productsRes.products || []).map(p => ({
       ...p,
       active: p.active === true || p.active === 1
     }));
-    state.sales = salesRes.sales || [];
-    state.payments = paymentsRes.payments || [];
+
+    // Normalize PostgreSQL/API field names once so the UI works with both
+    // camelCase frontend fields and lowercase fields returned by PostgreSQL.
+    state.sales = (salesRes.sales || []).map(raw => {
+      const nested = raw.sale || {};
+      const productObj = raw.product && typeof raw.product === "object" ? raw.product : null;
+      const productCode = productObj?.code || raw.productCode || nested.product || raw.product || "";
+      const firstDue = raw.firstDue || raw.firstdue || nested.firstDue || nested.firstdue || "";
+      const invoiceLabel = (typeof nested.invoice === "string" && /^INV[-/]/i.test(nested.invoice))
+        ? nested.invoice
+        : (raw.invoiceLabel || (typeof raw.invoice === "string" && /^INV[-/]/i.test(raw.invoice) ? raw.invoice : ""));
+      return {
+        ...raw,
+        id: raw.id || nested.id || raw.saleid || "",
+        custId: raw.custId || raw.custid || nested.custId || nested.custid || "",
+        name: raw.name || nested.name || "",
+        phone: raw.phone || nested.phone || "",
+        product: productCode,
+        productCode,
+        productName: raw.productName || raw.productname || productObj?.name || nested.productname || "",
+        productModel: raw.productModel || raw.productmodel || productObj?.model || nested.productmodel || "",
+        firstDue,
+        invoiceLabel,
+        date: raw.date || nested.date || "",
+        qty: Number(raw.qty ?? nested.qty ?? 1),
+        price: Number(raw.price ?? nested.price ?? 0),
+        discount: Number(raw.discount ?? nested.discount ?? 0),
+        advance: Number(raw.advance ?? nested.advance ?? 0),
+        rate: Number(raw.rate ?? nested.rate ?? 0),
+        term: Number(raw.term ?? nested.term ?? 0),
+        // Keep API-provided financial totals when present; otherwise calculate in saleFinance().
+        financed: raw.financed ?? nested.financed,
+        interest: raw.interest ?? nested.interest,
+        repay: raw.repay ?? nested.repay,
+        monthly: raw.monthly ?? nested.monthly,
+        received: raw.received ?? nested.received,
+        outstanding: raw.outstanding ?? nested.outstanding,
+        payments: Array.isArray(raw.payments) ? raw.payments : []
+      };
+    });
+    state.payments = (paymentsRes.payments || []).map(p => ({
+      ...p,
+      id: p.id || p.paymentid || "",
+      custId: p.custId || p.custid || "",
+      saleId: p.saleId || p.saleid || p.sale?.id || "",
+      name: p.name || "",
+      phone: p.phone || "",
+      date: p.date || "",
+      amount: Number(p.amount || 0),
+      category: String(p.category || "INSTALLMENT").toUpperCase(),
+      method: p.method || "Cash"
+    }));
+    const knownPaymentIds = new Set(state.payments.map(p => String(p.id)));
+    for (const sale of state.sales) {
+      for (const rawPayment of sale.payments || []) {
+        const payment = {
+          ...rawPayment,
+          id: rawPayment.id || rawPayment.paymentid || "",
+          custId: rawPayment.custId || rawPayment.custid || sale.custId,
+          saleId: rawPayment.saleId || rawPayment.saleid || sale.id,
+          amount: Number(rawPayment.amount || 0),
+          category: String(rawPayment.category || "INSTALLMENT").toUpperCase()
+        };
+        if (!payment.id || !knownPaymentIds.has(String(payment.id))) {
+          state.payments.push(payment);
+          if (payment.id) knownPaymentIds.add(String(payment.id));
+        }
+      }
+    }
 
     setApiStatus(true);
     return true;
@@ -407,7 +532,8 @@ async function refreshAfterMutation(page) {
 }
 
 function productByCode(code) {
-  return state.products.find(x => String(x.code) === String(code)) || null;
+  const key = code && typeof code === "object" ? code.code : code;
+  return state.products.find(x => String(x.code) === String(key)) || null;
 }
 
 function findCustByPhone(phone) {
@@ -425,7 +551,9 @@ function saleFinance(sale) {
     };
   }
 
-  const product = productByCode(sale.product);
+  const product = sale.product && typeof sale.product === "object"
+    ? sale.product
+    : productByCode(sale.productCode || sale.product);
   const qty = Number(sale.qty) || 1;
   const price = Number(sale.price) || 0;
   const discount = Number(sale.discount) || 0;
@@ -472,27 +600,42 @@ function paymentsForSale(saleId) {
   return state.payments.filter(x => x.saleId === saleId);
 }
 
+function oldSaleMeta(sale) {
+  const notes = String(sale?.notes || "");
+  const isOld = /OLD SALE ENTRY/i.test(notes);
+  const paidMatch = notes.match(/EMIs already paid:\s*(\d+)/i);
+  const termMatch = notes.match(/Original finance term:\s*(\d+)\s*months/i);
+  return {
+    isOld,
+    paidEmis: isOld ? Math.max(0, Number(paidMatch?.[1] || 0)) : 0,
+    originalTerm: isOld ? Math.max(0, Number(termMatch?.[1] || sale?.term || 0)) : Number(sale?.term || 0)
+  };
+}
+
 function scheduleForSale(sale) {
   if (!sale) return [];
   const f = saleFinance(sale);
-  const term = Number(sale.term) || 0;
+  const meta = oldSaleMeta(sale);
+  const term = Math.max(0, (Number(sale.term) || meta.originalTerm) - meta.paidEmis);
   if (f.financed <= 0 || term <= 0 || !sale.firstDue) return [];
 
+  // Historical EMI aggregate rows are only proof of EMIs paid before migration;
+  // don't allocate them again against installments that start at the next due date.
   let remainingCash = paymentsForSale(sale.id)
-    .filter(x => String(x.category || "").toUpperCase() !== "DEPOSIT")
+    .filter(x => String(x.category || "").toUpperCase() !== "DEPOSIT" && !/Historical payments:/i.test(String(x.notes || "")))
     .reduce((sum, x) => sum + Number(x.amount || 0), 0);
 
   const rows = [];
   for (let i = 1; i <= term; i++) {
     const due = addMonths(sale.firstDue, i - 1);
     const expected = i === term
-      ? round2(f.repay - f.monthly * (term - 1))
+      ? round2(f.monthly * (term - 1) < f.repay ? f.repay - f.monthly * (meta.originalTerm - 1) : f.monthly)
       : f.monthly;
     const allocated = round2(Math.max(0, Math.min(expected, remainingCash)));
     remainingCash = round2(remainingCash - allocated);
     const left = round2(Math.max(0, expected - allocated));
     const overdueDays = left > 0.009 && due < todayISO()
-      ? Math.floor((new Date(todayISO()) - new Date(due)) / 86400000)
+      ? Math.floor((new Date(todayISO() + "T00:00:00") - new Date(due + "T00:00:00")) / 86400000)
       : 0;
 
     let status = "UPCOMING";
@@ -501,18 +644,31 @@ function scheduleForSale(sale) {
     else if (due === todayISO()) status = "DUE TODAY";
     else if (due < todayISO()) status = "OVERDUE";
 
-    rows.push({ installment: i, n: i, due, expected, allocated, left, overdueDays, status });
+    rows.push({ installment: meta.paidEmis + i, n: meta.paidEmis + i, due, expected, allocated, left, overdueDays, status });
   }
   return rows;
 }
 
+function currentMonthOverdueRows() {
+  const month = todayISO().slice(0, 7);
+  return state.sales.flatMap(sale => scheduleForSale(sale)
+    .filter(row => String(row.due || "").slice(0, 7) === month && row.due < todayISO() && row.left > 0.009)
+    .map(row => ({ ...row, sale })));
+}
+
+function currentMonthOverdueTotal() {
+  return round2(currentMonthOverdueRows().reduce((sum, row) => sum + Number(row.left || 0), 0));
+}
+
 function saleStatus(sale) {
-  if (sale && sale.status) return sale.status;
+  // Do not trust a cached API status such as CURRENT: it can be stale after
+  // the first installment date has passed. Calculate status from the schedule.
   const f = saleFinance(sale);
   if (f.outstanding <= 0.009) return "PAID IN FULL";
   const schedule = scheduleForSale(sale);
-  if (schedule.some(x => x.status === "OVERDUE" || (x.status === "PARTIAL" && x.overdueDays > 0))) return "OVERDUE";
-  if (schedule.some(x => x.status === "DUE TODAY")) return "DUE TODAY";
+  const currentMonth = todayISO().slice(0, 7);
+  if (schedule.some(x => String(x.due || "").slice(0, 7) === currentMonth && x.due < todayISO() && x.left > 0.009)) return "OVERDUE";
+  if (schedule.some(x => x.due === todayISO() && x.left > 0.009)) return "DUE TODAY";
   if (f.financed > 0) return "CURRENT";
   return "CASH";
 }
@@ -544,9 +700,11 @@ function go(page) {
 
   if (page === "home") renderHome();
   if (page === "sale") prepareSale();
+  if (page === "old-sales") prepareOldSale();
   if (page === "payment") preparePayment();
   if (page === "search") renderSearch();
   if (page === "overdue") renderOverdue();
+  if (page === "installments") renderInstallments();
   if (page === "products") renderProducts();
   if (page === "customers") renderCustomers();
   if (page === "sales") renderSales();
@@ -561,7 +719,8 @@ async function renderHome() {
     const k = res.kpis || {};
     $("kpi-customers").textContent = Number(k.customers || 0);
     $("kpi-outstanding").textContent = money(k.outstanding);
-    $("kpi-overdue").textContent = money(k.overdue);
+    // Dashboard KPI is the unpaid amount for installments overdue in this calendar month only.
+    $("kpi-overdue").textContent = money(currentMonthOverdueTotal());
     $("kpi-collected").textContent = money(k.collectedThisMonth);
     $("kpi-salesm").textContent = money(k.salesThisMonth);
     $("kpi-products").textContent = Number(k.activeProducts || 0);
@@ -573,8 +732,7 @@ async function renderHome() {
 
 function renderHomeFromCache() {
   const out = state.sales.reduce((a, x) => a + saleFinance(x).outstanding, 0);
-  const od = state.sales.filter(x => saleStatus(x) === "OVERDUE")
-    .reduce((a, x) => a + saleFinance(x).outstanding, 0);
+  const od = currentMonthOverdueTotal();
   const month = todayISO().slice(0, 7);
   const collected = state.payments
     .filter(x => String(x.date).startsWith(month))
@@ -644,12 +802,14 @@ function updateSalePreview() {
   const qty = Number($("s-qty")?.value) || 1;
   const price = Number($("s-price")?.value) || 0;
   const discount = Number($("s-discount")?.value) || 0;
+  const fileCharges = $("s-product")?.value ? 1500 : 0;
   const advance = Number($("s-advance")?.value) || 0;
   const rate = Number($("s-rate")?.value) || 0;
   const term = Number($("s-term")?.value) || 0;
   const first = $("s-first")?.value || "";
 
-  const invoice = Math.max(0, qty * price - discount);
+  const subtotal = Math.max(0, qty * price - discount);
+  const invoice = Math.max(0, subtotal + fileCharges);
   const financed = Math.max(0, invoice - advance);
   const interest = calcInterest(financed, rate, term, state.settings.method);
   const repay = financed > 0 ? financed + interest : 0;
@@ -657,6 +817,8 @@ function updateSalePreview() {
   const prod = productByCode($("s-product")?.value);
   const gp = prod ? round2(invoice - Number(prod.cost || 0) * qty) : 0;
 
+  if ($("s-subtotal")) $("s-subtotal").textContent = money(subtotal);
+  if ($("s-file-charges")) $("s-file-charges").textContent = money(fileCharges);
   if ($("s-invoice-amt")) $("s-invoice-amt").textContent = money(invoice);
   if ($("s-financed")) $("s-financed").textContent = money(financed);
   if ($("s-interest")) $("s-interest").textContent = money(interest);
@@ -735,12 +897,14 @@ async function saveSale() {
       serial: $("s-serial").value.trim(),
       qty: Number($("s-qty").value) || 1,
       price,
-      discount: Number($("s-discount").value) || 0,
+      // Persist the fixed ₹1,500 file charge through the existing invoice formula
+      // (qty * price - discount) without requiring a database schema change.
+      discount: (Number($("s-discount").value) || 0) - 1500,
       advance: Number($("s-advance").value) || 0,
       rate: Number($("s-rate").value) || 0,
       term,
       firstDue: first,
-      notes: $("s-notes").value.trim()
+      notes: [$("s-notes").value.trim(), "File charges: ₹1,500"].filter(Boolean).join(" · ")
     };
 
     const deposit = sale.advance > 0 ? {
@@ -781,6 +945,102 @@ async function saveSale() {
   }
 }
 
+function prepareOldSale() {
+  fillProductSelect($("os-product"));
+  if ($("os-date") && !$("os-date").value) $("os-date").value = todayISO();
+  if ($("os-next-date") && !$("os-next-date").value) $("os-next-date").value = addMonths(todayISO(), 1);
+  if ($("os-invoice") && !$("os-invoice").value) $("os-invoice").value = "OLD-" + pad(state.sales.length + 1001, 4);
+  if ($("os-rate") && $("os-rate").value === "") $("os-rate").value = "1.5";
+  if ($("os-term") && $("os-term").value === "") $("os-term").value = "12";
+  updateOldSalePreview();
+}
+
+function onOldSalePhone() {
+  const phone = $("os-phone").value.trim();
+  const c = findCustByPhone(phone);
+  $("os-match").textContent = !phone ? "Type a mobile number" : c ? "Existing customer found: " + c.id : "New customer will be created.";
+  if (c) {
+    $("os-name").value = c.name || ""; $("os-alt").value = c.alt || "";
+    $("os-city").value = c.city || ""; $("os-address").value = c.address || "";
+  }
+}
+
+function onOldSaleProduct() {
+  const product = productByCode($("os-product").value);
+  if (product) $("os-price").value = product.price;
+  updateOldSalePreview();
+}
+
+function oldSaleCalc() {
+  const qty = Math.max(1, Number($("os-qty")?.value) || 1);
+  const price = Math.max(0, Number($("os-price")?.value) || 0);
+  const discount = Math.max(0, Number($("os-discount")?.value) || 0);
+  const file = $("os-product")?.value ? 1500 : 0;
+  const invoice = Math.max(0, qty * price - discount + file);
+  const deposit = Math.max(0, Number($("os-deposit")?.value) || 0);
+  const financed = Math.max(0, invoice - deposit);
+  const term = Math.max(1, Math.floor(Number($("os-term")?.value) || 1));
+  const paid = Math.min(term, Math.max(0, Math.floor(Number($("os-paid-emis")?.value) || 0)));
+  const monthlyRate = Math.max(0, Number($("os-rate")?.value) || 0) / 100;
+  const interest = round2(financed * monthlyRate * term);
+  const repay = round2(financed + interest);
+  const monthly = round2(repay / term);
+  const paidAmount = round2(monthly * paid);
+  const balance = round2(Math.max(0, repay - paidAmount));
+  return {qty,price,discount,file,invoice,deposit,financed,term,paid,monthlyRate,interest,repay,monthly,paidAmount,balance,remaining:term-paid};
+}
+
+function updateOldSalePreview() {
+  const c = oldSaleCalc();
+  const next = $("os-next-date")?.value || "";
+  const vals = {
+    "os-calc-subtotal": money(Math.max(0,c.qty*c.price-c.discount)), "os-calc-file": money(c.file),
+    "os-calc-price": money(c.invoice), "os-calc-deposit": money(c.deposit), "os-calc-financed": money(c.financed),
+    "os-calc-interest": money(c.interest), "os-calc-total": money(c.repay), "os-calc-monthly": money(c.monthly),
+    "os-calc-paid": String(c.paid), "os-calc-collected": money(c.paidAmount),
+    "os-calc-remaining-emis": String(c.remaining), "os-calc-balance": money(c.balance),
+    "os-calc-next": next ? fmtDate(next) : "—"
+  };
+  Object.entries(vals).forEach(([id,v]) => { if ($(id)) $(id).textContent = v; });
+}
+
+async function saveOldSale() {
+  const phone = $("os-phone").value.trim(), name = $("os-name").value.trim();
+  const date = $("os-date").value, code = $("os-product").value;
+  const nextDate = $("os-next-date").value;
+  const c = oldSaleCalc();
+  if (!phone || !name || !date || !code || !(c.price > 0)) return showMsg("os-msg", "Enter customer phone/name, sale date, product and selling price.", false);
+  if (!nextDate) return showMsg("os-msg", "Enter the next installment date.", false);
+  if (c.deposit > c.invoice) return showMsg("os-msg", "Advance cannot exceed the invoice total.", false);
+  if (c.paid > c.term) return showMsg("os-msg", "Paid EMIs cannot exceed the original finance term.", false);
+  try {
+    let cust = findCustByPhone(phone);
+    if (!cust) cust = { id: nextId(state.customers, "C", "id"), name, phone, alt: $("os-alt").value.trim(), address: $("os-address").value.trim(), city: $("os-city").value.trim(), notes: "" };
+    else cust = { ...cust, name, phone, alt: $("os-alt").value.trim(), address: $("os-address").value.trim(), city: $("os-city").value.trim() };
+    // Existing sale schema stores the finance rate as an annualized decimal. Convert monthly % to that format.
+    // Keep the original term and installment amount; the next due date is the next unpaid installment.
+    const rateForSchema = c.monthlyRate * 12;
+    const sale = {
+      id: nextId(state.sales, "S", "id"), custId: cust.id, name: cust.name, phone: cust.phone,
+      invoice: $("os-invoice").value.trim() || ("OLD-" + pad(state.sales.length+1001,4)), date,
+      product: code, serial: $("os-serial").value.trim(), qty: c.qty, price: c.price,
+      discount: c.discount - c.file, advance: c.deposit, rate: rateForSchema, term: c.term,
+      firstDue: nextDate,
+      notes: ["OLD SALE ENTRY", "Original finance term: " + c.term + " months", "EMIs already paid: " + c.paid,
+        "Monthly interest rate: " + (c.monthlyRate*100).toFixed(2) + "%", "File charges: ₹1,500", $("os-notes").value.trim()].filter(Boolean).join(" · ")
+    };
+    const depositPayment = c.deposit > 0 ? { id: nextId(state.payments,"P","id"), date, custId:cust.id, name:cust.name, phone:cust.phone, saleId:sale.id, invoice:sale.invoice, amount:c.deposit, method:"Cash", category:"DEPOSIT", notes:"Deposit on old sale " + sale.invoice } : null;
+    await apiFetch("/api/sales", { method:"POST", body:{ sale, customer:cust, deposit:depositPayment } });
+    // Keep historical EMI collection in one payment row, for the sum of the installments already paid.
+    if (c.paidAmount > 0) {
+      await apiFetch("/api/payments", { method:"POST", body:{ id:nextId(state.payments,"P","id"), date:date, custId:cust.id, name:cust.name, phone:cust.phone, saleId:sale.id, invoice:sale.invoice, amount:c.paidAmount, method:"Cash", category:"INSTALLMENT", notes:"Historical payments: " + c.paid + " EMI(s) already paid before account migration" } });
+    }
+    await loadAllData(true);
+    showMsg("os-msg", "Old sale saved: " + sale.invoice + ". Monthly EMI " + money(c.monthly) + "; remaining balance " + money(c.balance) + ".", true);
+    renderHome();
+  } catch (e) { showMsg("os-msg", "Could not save old sale: " + e.message, false); }
+}
+
 function preparePayment() {
   const list = $("phone-list");
   if (list) {
@@ -797,6 +1057,25 @@ function preparePayment() {
   $("p-snap").innerHTML = "Pick a phone to see the account.";
 }
 
+function getSalesForCustomer(cust) {
+  if (!cust) return [];
+
+  // Match by customer ID first, but also match normalized phone numbers.
+  // Older/imported database rows may use different customer ID formats.
+  const byId = state.sales.filter(s =>
+    String(s.custId || "") === String(cust.id || "")
+  );
+  const matches = byId.length ? byId : state.sales.filter(s =>
+    phonesMatch(s.phone, cust.phone) ||
+    (cust.alt && phonesMatch(s.phone, cust.alt))
+  );
+
+  return matches.sort((a, b) =>
+    String(a.date || "").localeCompare(String(b.date || "")) ||
+    String(a.id || "").localeCompare(String(b.id || ""))
+  );
+}
+
 function onPayPhone() {
   const phone = $("p-phone").value.trim();
   const cust = findCustByPhone(phone);
@@ -810,13 +1089,13 @@ function onPayPhone() {
     return;
   }
 
-  const sales = state.sales.filter(x => x.custId === cust.id);
+  const sales = getSalesForCustomer(cust);
   box.innerHTML = sales.length
     ? sales.map(x => {
         const f = saleFinance(x);
         return `<option value="${esc(x.id)}">${esc(x.id)} · ${esc(x.invoice)} · ${esc(f.name)} · outstanding ${money(f.outstanding)}</option>`;
       }).join("")
-    : '<option value="">No sales</option>';
+    : '<option value="">No sales for this phone</option>';
 
   updatePaySnap();
 }
@@ -844,8 +1123,9 @@ function updatePaySnap() {
 async function savePayment() {
   const phone = $("p-phone").value.trim();
   const cust = findCustByPhone(phone);
+  const customerSales = cust ? getSalesForCustomer(cust) : [];
   const sale = state.sales.find(x => x.id === $("p-invoice").value) ||
-    (cust && state.sales.filter(x => x.custId === cust.id).slice(-1)[0]);
+    customerSales[customerSales.length - 1];
   const amount = Number($("p-amount").value);
   const date = $("p-date").value;
 
@@ -857,9 +1137,9 @@ async function savePayment() {
   const payment = {
     id: nextId(state.payments, "P", "id"),
     date,
-    custId: cust.id,
-    name: cust.name,
-    phone: cust.phone,
+    custId: sale.custId || cust.id,
+    name: sale.name || cust.name,
+    phone: sale.phone || cust.phone,
     saleId: sale.id,
     invoice: sale.invoice,
     amount,
@@ -1311,6 +1591,28 @@ async function saveSettings() {
   }
 }
 
+async function changeLoginPin() {
+  const current = ($("pin-current")?.value || "").trim();
+  const next = ($("pin-new")?.value || "").trim();
+  const confirm = ($("pin-confirm")?.value || "").trim();
+  const showError = message => showMsg("pin-change-msg", message, false);
+  if (!authToken) return showError("Please sign in again before changing your password.");
+  if (!current || !next) return showError("Enter your current and new password.");
+  if (next.length < 4) return showError("New password must contain at least 4 characters.");
+  if (next === current) return showError("New password must be different from the current password.");
+  if (next !== confirm) return showError("New password and confirmation do not match.");
+  try {
+    await apiFetch("/api/auth/change-password", {
+      method: "POST",
+      body: { currentPassword: current, newPassword: next }
+    });
+    ["pin-current", "pin-new", "pin-confirm"].forEach(id => $(id).value = "");
+    showMsg("pin-change-msg", "Password updated in the database. Use it to sign in on other devices.", true);
+  } catch (e) {
+    showError(e.message || "Could not update password.");
+  }
+}
+
 async function exportData() {
   try {
     const res = await fetch(API_BASE + "/api/backup");
@@ -1382,62 +1684,43 @@ function badgeClass(st) {
   return "info";
 }
 
-function pickUser(id) {
-  selectedUser = USERS.find(u => u.id === id);
-  document.querySelectorAll(".who-btn").forEach(b =>
-    b.classList.toggle("active", b.dataset.id === id)
-  );
-
-  const pinWrap = $("pin-wrap");
-  if (pinWrap) pinWrap.classList.add("show");
-
-  const pinInput = $("pin");
-  if (pinInput) {
-    pinInput.value = "";
-    pinInput.focus();
-  }
-
-  if ($("login-err")) $("login-err").textContent =
-    "Enter PIN for " + selectedUser.name;
-}
+function pickUser() { const el = $("login-username"); if (el) el.focus(); }
 
 async function tryLogin() {
-  if (!selectedUser) {
-    $("login-err").textContent = "Tap your name first.";
-    return;
+  const username = ($("login-username")?.value || "").trim();
+  const password = ($("pin")?.value || "");
+  const error = $("login-err");
+  if (!username || !password) { if (error) error.textContent = "Enter your username and password."; return; }
+  if (error) error.textContent = "Signing in…";
+  try {
+    const result = await apiFetch("/api/auth/login", { method: "POST", body: { username, password } });
+    authToken = result.token || result.accessToken || result.access_token || null;
+    authUser = result.user || result.account || { name: username, username, role: "User" };
+    if (!authToken) throw new Error("Login API did not return an authentication token. Check the backend login response.");
+    session = { id: authUser.id, name: authUser.name || authUser.username || username, role: authUser.role || "User", username: authUser.username || username };
+    const loaded = await loadAllData(true);
+    if (!loaded) { authToken = null; session = null; return; }
+    $("login-screen").style.display = "none";
+    $("app").classList.add("show");
+    $("whoami").textContent = session.name + " · " + session.role;
+    go("home");
+  } catch (e) {
+    authToken = null; authUser = null; session = null;
+    if (error) error.textContent = e.message || "Login failed. Check your credentials and API configuration.";
   }
-
-  if ($("pin").value.trim() !== selectedUser.pin) {
-    $("login-err").textContent = "Wrong PIN.";
-    return;
-  }
-
-  const loaded = await loadAllData(true);
-  if (!loaded) return;
-
-  session = selectedUser;
-  $("login-screen").style.display = "none";
-  $("app").classList.add("show");
-  $("whoami").textContent = session.name + " · " + session.role;
-  go("home");
 }
 
 function logout() {
-  session = null;
-  selectedUser = null;
+  authToken = null; authUser = null; session = null; selectedUser = null;
   $("app").classList.remove("show");
   $("login-screen").style.display = "flex";
-  $("pin").value = "";
-  $("pin-wrap").classList.remove("show");
+  if ($("pin")) $("pin").value = "";
+  if ($("login-username")) $("login-username").value = "";
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
   const pinInput = $("pin");
-  if (pinInput) {
-    pinInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") tryLogin();
-    });
-  }
+  if (pinInput) pinInput.addEventListener("keydown", e => { if (e.key === "Enter") tryLogin(); });
 
   // Check API immediately so the user gets a clear connection failure.
   try {
@@ -1451,7 +1734,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 
 // ===== Modern listing UI: client-side pagination + Excel exports =====
-const LIST_PAGE = {products:1, customers:1, sales:1, payments:1, overdue:1};
+const LIST_PAGE = {products:1, customers:1, sales:1, payments:1, overdue:1, installments:1};
 function pageRows(key, rows, size) {
   const total = rows.length, pages = Math.max(1, Math.ceil(total/size));
   LIST_PAGE[key] = Math.min(Math.max(1, LIST_PAGE[key] || 1), pages);
@@ -1463,8 +1746,8 @@ function paginate(key, total, pages, start, end, id) {
   if(!total){el.innerHTML='<div class="page-info">No records</div><div class="page-buttons"></div>';return;}
   let nums=[]; const cur=LIST_PAGE[key];
   const from=Math.max(1,cur-2), to=Math.min(pages,cur+2);
-  for(let i=from;i<=to;i++) nums.push(`<button class="${i===cur?'active':''}" onclick="LIST_PAGE['${key}']=${i};${key==='overdue'?'renderOverdue()':key==='products'?'renderProducts()':key==='customers'?'renderCustomers()':key==='sales'?'renderSales()':'renderPayments()'}">${i}</button>`);
-  el.innerHTML=`<div class="page-info">Showing ${start}-${end} of ${total}</div><div class="page-buttons"><button ${cur===1?'disabled':''} onclick="LIST_PAGE['${key}']=Math.max(1,${cur}-1);${key==='overdue'?'renderOverdue()':key==='products'?'renderProducts()':key==='customers'?'renderCustomers()':key==='sales'?'renderSales()':'renderPayments()'}">‹</button>${nums.join('')}<button ${cur===pages?'disabled':''} onclick="LIST_PAGE['${key}']=Math.min(${pages},${cur}+1);${key==='overdue'?'renderOverdue()':key==='products'?'renderProducts()':key==='customers'?'renderCustomers()':key==='sales'?'renderSales()':'renderPayments()'}">›</button></div>`;
+  for(let i=from;i<=to;i++) nums.push(`<button class="${i===cur?'active':''}" onclick="LIST_PAGE['${key}']=${i};${key==='overdue'?'renderOverdue()':key==='installments'?'renderInstallments()':key==='products'?'renderProducts()':key==='customers'?'renderCustomers()':key==='sales'?'renderSales()':'renderPayments()'}">${i}</button>`);
+  el.innerHTML=`<div class="page-info">Showing ${start}-${end} of ${total}</div><div class="page-buttons"><button ${cur===1?'disabled':''} onclick="LIST_PAGE['${key}']=Math.max(1,${cur}-1);${key==='overdue'?'renderOverdue()':key==='installments'?'renderInstallments()':key==='products'?'renderProducts()':key==='customers'?'renderCustomers()':key==='sales'?'renderSales()':'renderPayments()'}">‹</button>${nums.join('')}<button ${cur===pages?'disabled':''} onclick="LIST_PAGE['${key}']=Math.min(${pages},${cur}+1);${key==='overdue'?'renderOverdue()':key==='installments'?'renderInstallments()':key==='products'?'renderProducts()':key==='customers'?'renderCustomers()':key==='sales'?'renderSales()':'renderPayments()'}">›</button></div>`;
 }
 function listSize(id){return Number($(id)?.value||10)||10}
 function excelEscape(value){
@@ -1501,7 +1784,7 @@ function exportListing(type){
   let rows=[];
   if(type==='products') rows=state.products.map(p=>({Code:p.code,Product:p.name,Model:p.model,Category:p.category,Cost:Number(p.cost||0),Price:Number(p.price||0),Margin:Number(p.price||0)-Number(p.cost||0),Status:p.active?'Active':'Inactive'}));
   if(type==='customers') rows=state.customers.map(c=>{const sales=state.sales.filter(x=>x.custId===c.id);const out=Number(c.outstanding??sales.reduce((a,x)=>a+saleFinance(x).outstanding,0));return {ID:c.id,Customer:c.name,Phone:c.phone,Alternate:c.alt||'',City:c.city||'',Sales:Number(c.salesCount??sales.length),Outstanding:out,Status:c.status||customerStatus(c)};});
-  if(type==='sales') rows=state.sales.map(x=>{const f=saleFinance(x);return {Sale:x.id,Customer:x.name,Phone:x.phone,Invoice:x.invoice,Date:x.date,Product:f.name,InvoiceAmount:f.invoice,Advance:Number(x.advance||0),Term:Number(x.term||0),Monthly:f.monthly,Received:f.received,Outstanding:f.outstanding,Status:saleStatus(x)};});
+  if(type==='sales') rows=state.sales.map(x=>{const f=saleFinance(x);return {Sale:x.id,Customer:x.name,Phone:x.phone,Invoice:x.invoice,Date:x.date,DueDate:saleNextDueDate(x),Product:f.name,InvoiceAmount:f.invoice,Advance:Number(x.advance||0),Term:Number(x.term||0),Monthly:f.monthly,Received:f.received,Outstanding:f.outstanding,Status:saleStatus(x)};});
   if(type==='payments') rows=[...state.payments].reverse().map(x=>({ID:x.id,Date:x.date,Customer:x.name,Phone:x.phone,Sale:x.saleId,Amount:Number(x.amount||0),Method:x.method,Category:x.category,Notes:x.notes||''}));
   if(type==='overdue') rows=state.sales.flatMap(s=>scheduleForSale(s).filter(r=>r.status==='OVERDUE'||(r.status==='PARTIAL'&&r.overdueDays>0)).map(r=>({Customer:s.name,Phone:s.phone,Sale:s.id,Invoice:s.invoice,DueDate:r.due,Expected:r.expected,Outstanding:r.left,LateDays:r.overdueDays,Status:r.status})));
   exportXlsx(rows,type==='overdue'?'Overdue':type[0].toUpperCase()+type.slice(1),`malhi-${type}-${todayISO()}`);
@@ -1520,11 +1803,19 @@ function renderCustomers(){
   body.innerHTML=pg.rows.map(c=>{const sales=state.sales.filter(x=>x.custId===c.id);const out=Number(c.outstanding??sales.reduce((a,x)=>a+saleFinance(x).outstanding,0));const status=c.status||customerStatus(c);return `<tr><td class="mono">${esc(c.id)}</td><td><b>${esc(c.name)}</b></td><td>${esc(c.phone)}</td><td>${esc(c.city||'—')}</td><td>${Number(c.salesCount??sales.length)}</td><td class="amount">${money(out)}</td><td><span class="badge ${badgeClass(status)}">${esc(status)}</span></td><td><button class="btn ghost small" onclick="editCustomer('${esc(c.id)}')">Edit</button> <button class="btn danger small" onclick="deleteCustomer('${esc(c.id)}')">Delete</button></td></tr>`}).join('')||`<tr><td colspan="8" class="table-empty">No customers match your filters.</td></tr>`;
   $("cu-count").textContent=`${rows.length} customer${rows.length===1?'':'s'}`; paginate('customers',pg.total,pg.pages,pg.start,pg.end,'cu-pagination');
 }
+function saleNextDueDate(sale){
+  if (!sale) return "";
+  // For migrated old sales, firstDue is intentionally the next unpaid installment date.
+  if (String(sale.notes || "").includes("OLD SALE ENTRY")) return sale.firstDue || "";
+  const next = scheduleForSale(sale).find(row => row.status !== "PAID");
+  return next?.due || "";
+}
 function renderSales(){
-  const q=($("sa-search")?.value||'').toLowerCase().trim(), st=$("sa-status")?.value||'all';
-  let rows=state.sales.filter(x=>{const f=saleFinance(x),status=saleStatus(x);return (!q||[x.id,x.name,x.phone,x.invoice,f.name].some(v=>String(v||'').toLowerCase().includes(q)))&&(st==='all'||status===st)}).slice().reverse();
+  const q=$("sa-search")?.value||'', st=$("sa-status")?.value||'all';
+  const query=q.toLowerCase().trim();
+  let rows=state.sales.filter(x=>{const f=saleFinance(x),status=saleStatus(x);return (!query||[x.id,x.name,x.phone,x.invoice,f.name].some(v=>String(v||'').toLowerCase().includes(query)))&&(st==='all'||status===st)}).slice().reverse();
   const pg=pageRows('sales',rows,listSize('sa-size')); const body=$("sa-body");
-  body.innerHTML=pg.rows.map(x=>{const f=saleFinance(x),status=saleStatus(x);return `<tr><td class="mono">${esc(x.id)}</td><td><b>${esc(x.name)}</b></td><td>${esc(x.phone)}</td><td class="mono">${esc(x.invoice)}</td><td>${fmtDate(x.date)}</td><td>${esc(f.name)}</td><td class="amount">${money(f.invoice)}</td><td>${money(x.advance)}</td><td>${Number(x.term)||'—'}</td><td>${f.monthly?money(f.monthly):'—'}</td><td class="amount">${money(f.outstanding)}</td><td><span class="badge ${badgeClass(status)}">${esc(status)}</span></td><td><button class="btn ghost small" onclick="viewSale('${esc(x.id)}')">View</button> <button class="btn danger small" onclick="deleteSale('${esc(x.id)}')">Delete</button></td></tr>`}).join('')||`<tr><td colspan="13" class="table-empty">No sales match your filters.</td></tr>`;
+  body.innerHTML=pg.rows.map(x=>{const f=saleFinance(x),status=saleStatus(x),due=saleNextDueDate(x);return `<tr><td class="mono">${esc(x.id)}</td><td><b>${esc(x.name)}</b></td><td>${esc(x.phone)}</td><td class="mono">${esc(x.invoiceLabel || x.invoice)}</td><td>${fmtDate(x.date)}</td><td>${due?fmtDate(due):'—'}</td><td>${esc(f.name)}</td><td class="amount">${money(f.invoice)}</td><td>${money(x.advance)}</td><td>${Number(x.term)||'—'}</td><td>${f.monthly?money(f.monthly):'—'}</td><td class="amount">${money(f.outstanding)}</td><td><span class="badge ${badgeClass(status)}">${esc(status)}</span></td><td><button class="btn ghost small" onclick="viewSale('${esc(x.id)}')">View</button> <button class="btn danger small" onclick="deleteSale('${esc(x.id)}')">Delete</button></td></tr>`}).join('')||`<tr><td colspan="14" class="table-empty">No sales match your filters.</td></tr>`;
   $("sa-count").textContent=`${rows.length} sale${rows.length===1?'':'s'}`; paginate('sales',pg.total,pg.pages,pg.start,pg.end,'sa-pagination');
 }
 function renderPayments(){
@@ -1536,11 +1827,52 @@ function renderPayments(){
 }
 function renderOverdue(){
   const q=($("od-search")?.value||'').toLowerCase().trim(); let rows=[];
-  state.sales.forEach(s=>scheduleForSale(s).filter(r=>r.status==='OVERDUE'||(r.status==='PARTIAL'&&r.overdueDays>0)).forEach(r=>rows.push({...r,sale:s})));
+  // Show only overdue installments whose due date falls in the current calendar month.
+  rows = currentMonthOverdueRows();
   rows=rows.filter(r=>!q||[r.sale.name,r.sale.phone,r.sale.id,r.sale.invoice,r.due].some(v=>String(v||'').toLowerCase().includes(q))).sort((a,b)=>String(a.due).localeCompare(String(b.due)));
   const pg=pageRows('overdue',rows,listSize('od-size')); const body=$("od-body");
   body.innerHTML=pg.rows.map(r=>`<tr><td><b>${esc(r.sale.name)}</b></td><td>${esc(r.sale.phone)}</td><td class="mono">${esc(r.sale.id)}</td><td>${fmtDate(r.due)}</td><td>${money(r.expected)}</td><td class="amount">${money(r.left)}</td><td>${r.overdueDays} days</td><td><span class="badge ${r.status==='PARTIAL'?'warn':'bad'}">${esc(r.status)}</span></td></tr>`).join('')||`<tr><td colspan="8" class="table-empty">🎉 No overdue installments.</td></tr>`;
   $("od-count").textContent=`${rows.length} overdue installment${rows.length===1?'':'s'}`; paginate('overdue',pg.total,pg.pages,pg.start,pg.end,'od-pagination');
+}
+
+function dateDiffDays(fromISO, toISO) {
+  return Math.round((new Date(toISO + "T00:00:00") - new Date(fromISO + "T00:00:00")) / 86400000);
+}
+function upcomingInstallmentRows() {
+  const today = todayISO();
+  const month = today.slice(0, 7);
+  const horizon = new Date(today + "T00:00:00");
+  horizon.setDate(horizon.getDate() + 5);
+  const horizonISO = [horizon.getFullYear(), String(horizon.getMonth()+1).padStart(2,"0"), String(horizon.getDate()).padStart(2,"0")].join("-");
+  return state.sales.flatMap(sale => scheduleForSale(sale)
+    .filter(row => row.left > 0.009 && ((String(row.due).slice(0,7) === month) || (row.due >= today && row.due <= horizonISO)))
+    .map(row => ({...row, sale, daysUntil: dateDiffDays(today, row.due)})))
+    .sort((a,b) => String(a.due).localeCompare(String(b.due)) || String(a.sale.name).localeCompare(String(b.sale.name)));
+}
+function sendInstallmentWhatsApp(saleId, dueDate) {
+  const row = upcomingInstallmentRows().find(item => String(item.sale.id) === String(saleId) && String(item.due) === String(dueDate));
+  if (!row) return alert("Installment details not found. Please refresh the list.");
+  // Use the first number if multiple contact numbers are stored.
+  let phone = String(row.sale.phone || "").split(/[,;/]/)[0].replace(/\D/g, "");
+  if (phone.length === 10) phone = "91" + phone;
+  if (phone.length < 10) return alert("No valid WhatsApp number is saved for this customer.");
+  const greeting = row.sale.name ? `Dear ${row.sale.name},` : "Dear Customer,";
+  const message = `${greeting} this is a reminder from Malhi Enterprise. Your EMI of ${money(row.left)} is due on ${fmtDate(row.due)} for sale ${row.sale.id}. Please make the payment on or before the due date. Thank you.`;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+}
+function renderInstallments() {
+  const q = ($("ins-search")?.value || "").toLowerCase().trim();
+  const rows = upcomingInstallmentRows().filter(r => !q || [r.sale.name,r.sale.phone,r.sale.id,r.sale.invoice,r.due].some(v => String(v||"").toLowerCase().includes(q)));
+  const pg = pageRows("installments", rows, listSize("ins-size"));
+  const body = $("ins-body");
+  body.innerHTML = pg.rows.map(r => {
+    const idx = rows.indexOf(r);
+    const status = r.due < todayISO() ? "OVERDUE" : r.due === todayISO() ? "DUE TODAY" : "UPCOMING";
+    const dayLabel = r.daysUntil < 0 ? `${Math.abs(r.daysUntil)} days late` : r.daysUntil === 0 ? "Due today" : `${r.daysUntil} days left`;
+    return `<tr><td><b>${esc(r.sale.name)}</b></td><td>${esc(r.sale.phone || "—")}</td><td class="mono">${esc(r.sale.id)}</td><td>${fmtDate(r.due)}</td><td class="amount">${money(r.left)}</td><td>${dayLabel}</td><td><span class="badge ${status==='OVERDUE'?'bad':status==='DUE TODAY'?'warn':'info'}">${status}</span></td><td><button class="btn small primary" onclick="sendInstallmentWhatsApp('${esc(r.sale.id)}','${esc(r.due)}')" title="Send WhatsApp reminder">✉ Send</button></td></tr>`;
+  }).join("") || `<tr><td colspan="8" class="table-empty">No unpaid installments due this month or within the next 5 days.</td></tr>`;
+  $("ins-count").textContent = `${rows.length} installment${rows.length===1?"":"s"}`;
+  paginate("installments", pg.total, pg.pages, pg.start, pg.end, "ins-pagination");
 }
 // Update API indicator text when connection state changes.
 const _setApiStatus=setApiStatus;
