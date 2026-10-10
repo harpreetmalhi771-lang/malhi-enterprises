@@ -7,6 +7,9 @@ const cors = require("cors");
 const path = require("path");
 const crypto = require("crypto");
 
+// Generate unique payment IDs on the server; never trust a frontend counter.
+
+
 const { Pool } = require("pg");
 
 const { AsyncLocalStorage } = require("async_hooks");
@@ -17,7 +20,9 @@ const app = express();
 
 const PORT = Number(process.env.PORT || 3000);
 
-
+function generatePaymentId() {
+  return `P${Date.now()}${crypto.randomBytes(6).toString("hex").toUpperCase()}`;
+}
 
 app.use(cors());
 
@@ -2549,7 +2554,7 @@ app.post("/api/sales", async (req, res) => {
 
           [
 
-            deposit.id,
+            generatePaymentId(),
 
             deposit.date || saleRow.date,
 
@@ -3011,14 +3016,6 @@ app.post("/api/payments", async (req, res) => {
 
 
 
-    if (!p.id) {
-
-      return fail(res, new Error("Payment id is required"), 400);
-
-    }
-
-
-
     if (!(Number(p.amount) > 0)) {
 
       return fail(res, new Error("Payment amount must be greater than zero"), 400);
@@ -3049,7 +3046,7 @@ app.post("/api/payments", async (req, res) => {
 
     const now = new Date().toISOString();
 
-
+    const paymentId = generatePaymentId();
 
     await run(
 
@@ -3061,7 +3058,7 @@ app.post("/api/payments", async (req, res) => {
 
       [
 
-        p.id,
+        paymentId,
 
         p.date || todayISO(),
 
@@ -3097,13 +3094,13 @@ app.post("/api/payments", async (req, res) => {
 
       "SELECT * FROM payments WHERE id = ?",
 
-      [p.id]
+      [paymentId]
 
     );
 
 
 
-    await logAudit("CREATE", "payment", p.id, payment);
+    await logAudit("CREATE", "payment", paymentId, payment);
 
 
 
