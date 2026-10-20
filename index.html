@@ -18,6 +18,7 @@
 .list-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}.list-toolbar{padding:14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;flex-wrap:wrap}.list-toolbar .search-input{flex:1 1 260px;min-width:180px;background:#f8fafc}.list-toolbar select{width:auto;min-width:90px;background:#f8fafc}.toolbar-title{margin-right:auto;font-weight:900;color:var(--navy);font-size:14px}.toolbar-count{font-size:11px;color:var(--muted);font-weight:700}.table-wrap{overflow:auto;background:#fff}.table-wrap table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;min-width:850px}table th{background:#f7f9fc;color:#526174;text-align:left;padding:11px 12px;white-space:nowrap;border-bottom:1px solid var(--line);font-size:10px;text-transform:uppercase;letter-spacing:.55px;position:sticky;top:0;z-index:2}table td{padding:11px 12px;border-bottom:1px solid #eef1f5;white-space:nowrap;vertical-align:middle}table tbody tr:hover td{background:#fbfdff}table tbody tr:last-child td{border-bottom:0}.table-empty{text-align:center!important;color:var(--muted);padding:35px!important}.pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-top:1px solid var(--line);background:#fbfcfe;flex-wrap:wrap}.page-info{font-size:11px;color:var(--muted);font-weight:700}.page-buttons{display:flex;gap:5px;align-items:center}.page-buttons button{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:8px;padding:7px 10px;font-size:11px;font-weight:800}.page-buttons button.active{background:var(--navy);color:#fff;border-color:var(--navy)}.page-buttons button:disabled{opacity:.4;cursor:not-allowed}.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900}.badge:before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}.badge.ok{background:var(--greenbg);color:#08704b}.badge.warn{background:var(--orangebg);color:var(--orange)}.badge.bad{background:var(--redbg);color:var(--red)}.badge.info{background:var(--bluebg);color:#1769aa}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}.amount{font-weight:850;color:var(--navy)}
 .settings-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:15px}@media(max-width:900px){.settings-grid{grid-template-columns:1fr}.quick{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.kpis{grid-template-columns:1fr 1fr}.quick{grid-template-columns:1fr}.row{grid-template-columns:1fr}.top-right .api-pill{display:none}.nav{top:64px}}
+.checkline{display:flex;align-items:center;gap:9px;margin:8px 0 14px;font-weight:800;color:var(--navy)}.checkline input{width:18px;height:18px;accent-color:#079aa4}
 </style>
 </head>
 <body>
@@ -113,7 +114,8 @@
       </div>
       <div class="grid2">
         <div class="card">
-          <h3>3. Finance (leave term 0 for cash)</h3>
+          <h3>3. Finance</h3>
+          <label class="checkline"><input id="s-full-payment" type="checkbox" onchange="toggleFullPayment('sale')" /> Full payment (no file charges or interest)</label>
           <div class="row">
             <div><label>Interest rate (0.10 = 10%)</label><input id="s-rate" type="number" step="0.01" oninput="updateSalePreview()" /></div>
             <div><label>Term (months)</label><input id="s-term" type="number" min="0" oninput="updateSalePreview()" /></div>
@@ -165,9 +167,10 @@
       </div>
       <div class="grid2">
         <div class="card"><h3>3. Finance &amp; previous installments</h3>
+          <label class="checkline"><input id="os-full-payment" type="checkbox" onchange="toggleFullPayment('old')" /> Full payment (no file charges or interest)</label>
           <div class="row"><div><label>Interest rate (monthly %, e.g. 1.5)</label><input id="os-rate" type="number" min="0" step="0.1" value="1.5" oninput="updateOldSalePreview()" /></div><div><label>Finance term (months)</label><input id="os-term" type="number" min="1" value="12" oninput="updateOldSalePreview()" /></div></div>
           <div class="row"><div><label>EMIs already paid</label><input id="os-paid-emis" type="number" min="0" value="0" oninput="updateOldSalePreview()" /></div><div><label>Next installment date</label><input id="os-next-date" type="date" oninput="updateOldSalePreview()" /></div></div>
-          <p class="hint">File charges of ₹1,500 are automatically added when a product is selected. Old-sale interest is calculated as financed amount × monthly rate × original term.</p>
+          <p class="hint">For financed old sales, file charges of ₹1,500 are added and interest is calculated as financed amount × monthly rate × original term. Select Full payment to remove file charges and interest.</p>
         </div>
         <div class="card calc"><h3>Calculated old account</h3><div class="preview">
           Product subtotal <b id="os-calc-subtotal">₹0.00</b><br>
@@ -798,18 +801,44 @@ function onSaleProduct() {
   updateSalePreview();
 }
 
+function toggleFullPayment(kind) {
+  const isOld = kind === "old";
+  const full = Boolean($(isOld ? "os-full-payment" : "s-full-payment")?.checked);
+  const ids = isOld ? ["os-rate", "os-term", "os-paid-emis", "os-next-date"] : ["s-rate", "s-term", "s-first"];
+  ids.forEach(id => { if ($(id)) $(id).disabled = full; });
+  if (full) {
+    if (isOld) {
+      const qty = Math.max(1, Number($("os-qty")?.value) || 1);
+      const price = Math.max(0, Number($("os-price")?.value) || 0);
+      const discount = Math.max(0, Number($("os-discount")?.value) || 0);
+      $("os-deposit").value = Math.max(0, qty * price - discount);
+      $("os-paid-emis").value = 0;
+      $("os-next-date").value = "";
+    } else {
+      const qty = Math.max(1, Number($("s-qty")?.value) || 1);
+      const price = Math.max(0, Number($("s-price")?.value) || 0);
+      const discount = Number($("s-discount")?.value) || 0;
+      $("s-advance").value = Math.max(0, qty * price - discount);
+      $("s-first").value = "";
+    }
+  }
+  isOld ? updateOldSalePreview() : updateSalePreview();
+}
+
 function updateSalePreview() {
   const qty = Number($("s-qty")?.value) || 1;
   const price = Number($("s-price")?.value) || 0;
   const discount = Number($("s-discount")?.value) || 0;
-  const fileCharges = $("s-product")?.value ? 1500 : 0;
-  const advance = Number($("s-advance")?.value) || 0;
-  const rate = Number($("s-rate")?.value) || 0;
-  const term = Number($("s-term")?.value) || 0;
+  const fullPayment = Boolean($("s-full-payment")?.checked);
+  const fileCharges = !fullPayment && $("s-product")?.value ? 1500 : 0;
+  const rate = fullPayment ? 0 : (Number($("s-rate")?.value) || 0);
+  const term = fullPayment ? 0 : (Number($("s-term")?.value) || 0);
   const first = $("s-first")?.value || "";
 
   const subtotal = Math.max(0, qty * price - discount);
   const invoice = Math.max(0, subtotal + fileCharges);
+  const advance = fullPayment ? invoice : (Number($("s-advance")?.value) || 0);
+  if (fullPayment && $("s-advance") && Number($("s-advance").value) !== invoice) $("s-advance").value = invoice;
   const financed = Math.max(0, invoice - advance);
   const interest = calcInterest(financed, rate, term, state.settings.method);
   const repay = financed > 0 ? financed + interest : 0;
@@ -851,8 +880,9 @@ async function saveSale() {
   const date = $("s-date").value;
   const code = $("s-product").value;
   const price = Number($("s-price").value);
-  const term = Number($("s-term").value) || 0;
-  const first = $("s-first").value;
+  const fullPayment = Boolean($("s-full-payment")?.checked);
+  const term = fullPayment ? 0 : (Number($("s-term").value) || 0);
+  const first = fullPayment ? "" : $("s-first").value;
 
   if (!phone) return showMsg("s-msg", "Type the mobile number.", false);
   if (!name) return showMsg("s-msg", "Type the customer name.", false);
@@ -897,14 +927,13 @@ async function saveSale() {
       serial: $("s-serial").value.trim(),
       qty: Number($("s-qty").value) || 1,
       price,
-      // Persist the fixed ₹1,500 file charge through the existing invoice formula
-      // (qty * price - discount) without requiring a database schema change.
-      discount: (Number($("s-discount").value) || 0) - 1500,
-      advance: Number($("s-advance").value) || 0,
-      rate: Number($("s-rate").value) || 0,
+      // File charges are persisted through the existing invoice formula; full-payment sales exclude them.
+      discount: (Number($("s-discount").value) || 0) - (fullPayment ? 0 : 1500),
+      advance: fullPayment ? Math.max(0, qty * price - (Number($("s-discount").value) || 0)) : (Number($("s-advance").value) || 0),
+      rate: fullPayment ? 0 : (Number($("s-rate").value) || 0),
       term,
       firstDue: first,
-      notes: [$("s-notes").value.trim(), "File charges: ₹1,500"].filter(Boolean).join(" · ")
+      notes: [$("s-notes").value.trim(), fullPayment ? "FULL PAYMENT — no file charges or interest" : "File charges: ₹1,500"].filter(Boolean).join(" · ")
     };
 
     const deposit = sale.advance > 0 ? {
@@ -934,6 +963,8 @@ async function saveSale() {
     showMsg("s-msg", "Sale saved: " + sale.id + " · " + cust.name + " · Monthly " + (f.monthly ? money(f.monthly) : "cash"), true);
 
     $("s-product").value = "";
+    $("s-full-payment").checked = false;
+    toggleFullPayment("sale");
     $("s-price").value = "";
     $("s-advance").value = 0;
     $("s-first").value = "";
@@ -975,19 +1006,21 @@ function oldSaleCalc() {
   const qty = Math.max(1, Number($("os-qty")?.value) || 1);
   const price = Math.max(0, Number($("os-price")?.value) || 0);
   const discount = Math.max(0, Number($("os-discount")?.value) || 0);
-  const file = $("os-product")?.value ? 1500 : 0;
+  const fullPayment = Boolean($("os-full-payment")?.checked);
+  const file = !fullPayment && $("os-product")?.value ? 1500 : 0;
   const invoice = Math.max(0, qty * price - discount + file);
-  const deposit = Math.max(0, Number($("os-deposit")?.value) || 0);
+  const deposit = fullPayment ? invoice : Math.max(0, Number($("os-deposit")?.value) || 0);
+  if (fullPayment && $("os-deposit") && Number($("os-deposit").value) !== invoice) $("os-deposit").value = invoice;
   const financed = Math.max(0, invoice - deposit);
-  const term = Math.max(1, Math.floor(Number($("os-term")?.value) || 1));
-  const paid = Math.min(term, Math.max(0, Math.floor(Number($("os-paid-emis")?.value) || 0)));
-  const monthlyRate = Math.max(0, Number($("os-rate")?.value) || 0) / 100;
-  const interest = round2(financed * monthlyRate * term);
+  const term = fullPayment ? 0 : Math.max(1, Math.floor(Number($("os-term")?.value) || 1));
+  const paid = fullPayment ? 0 : Math.min(term, Math.max(0, Math.floor(Number($("os-paid-emis")?.value) || 0)));
+  const monthlyRate = fullPayment ? 0 : Math.max(0, Number($("os-rate")?.value) || 0) / 100;
+  const interest = fullPayment ? 0 : round2(financed * monthlyRate * term);
   const repay = round2(financed + interest);
-  const monthly = round2(repay / term);
+  const monthly = term > 0 ? round2(repay / term) : 0;
   const paidAmount = round2(monthly * paid);
-  const balance = round2(Math.max(0, repay - paidAmount));
-  return {qty,price,discount,file,invoice,deposit,financed,term,paid,monthlyRate,interest,repay,monthly,paidAmount,balance,remaining:term-paid};
+  const balance = fullPayment ? 0 : round2(Math.max(0, repay - paidAmount));
+  return {qty,price,discount,file,invoice,deposit,financed,term,paid,monthlyRate,interest,repay,monthly,paidAmount,balance,remaining:Math.max(0,term-paid),fullPayment};
 }
 
 function updateOldSalePreview() {
@@ -1007,10 +1040,10 @@ function updateOldSalePreview() {
 async function saveOldSale() {
   const phone = $("os-phone").value.trim(), name = $("os-name").value.trim();
   const date = $("os-date").value, code = $("os-product").value;
-  const nextDate = $("os-next-date").value;
   const c = oldSaleCalc();
+  const nextDate = c.fullPayment ? "" : $("os-next-date").value;
   if (!phone || !name || !date || !code || !(c.price > 0)) return showMsg("os-msg", "Enter customer phone/name, sale date, product and selling price.", false);
-  if (!nextDate) return showMsg("os-msg", "Enter the next installment date.", false);
+  if (!c.fullPayment && !nextDate) return showMsg("os-msg", "Enter the next installment date.", false);
   if (c.deposit > c.invoice) return showMsg("os-msg", "Advance cannot exceed the invoice total.", false);
   if (c.paid > c.term) return showMsg("os-msg", "Paid EMIs cannot exceed the original finance term.", false);
   try {
@@ -1019,20 +1052,19 @@ async function saveOldSale() {
     else cust = { ...cust, name, phone, alt: $("os-alt").value.trim(), address: $("os-address").value.trim(), city: $("os-city").value.trim() };
     // Existing sale schema stores the finance rate as an annualized decimal. Convert monthly % to that format.
     // Keep the original term and installment amount; the next due date is the next unpaid installment.
-    const rateForSchema = c.monthlyRate * 12;
+    const rateForSchema = c.fullPayment ? 0 : c.monthlyRate * 12;
     const sale = {
       id: nextId(state.sales, "S", "id"), custId: cust.id, name: cust.name, phone: cust.phone,
       invoice: $("os-invoice").value.trim() || ("OLD-" + pad(state.sales.length+1001,4)), date,
       product: code, serial: $("os-serial").value.trim(), qty: c.qty, price: c.price,
       discount: c.discount - c.file, advance: c.deposit, rate: rateForSchema, term: c.term,
-      firstDue: nextDate,
-      notes: ["OLD SALE ENTRY", "Original finance term: " + c.term + " months", "EMIs already paid: " + c.paid,
-        "Monthly interest rate: " + (c.monthlyRate*100).toFixed(2) + "%", "File charges: ₹1,500", $("os-notes").value.trim()].filter(Boolean).join(" · ")
+      firstDue: nextDate || null,
+      notes: ["OLD SALE ENTRY", c.fullPayment ? "FULL PAYMENT — no file charges or interest" : "Original finance term: " + c.term + " months", ...(c.fullPayment ? [] : ["EMIs already paid: " + c.paid, "Monthly interest rate: " + (c.monthlyRate*100).toFixed(2) + "%", "File charges: ₹1,500"]), $("os-notes").value.trim()].filter(Boolean).join(" · ")
     };
     const depositPayment = c.deposit > 0 ? { id: nextId(state.payments,"P","id"), date, custId:cust.id, name:cust.name, phone:cust.phone, saleId:sale.id, invoice:sale.invoice, amount:c.deposit, method:"Cash", category:"DEPOSIT", notes:"Deposit on old sale " + sale.invoice } : null;
     await apiFetch("/api/sales", { method:"POST", body:{ sale, customer:cust, deposit:depositPayment } });
     // Keep historical EMI collection in one payment row, for the sum of the installments already paid.
-    if (c.paidAmount > 0) {
+    if (!c.fullPayment && c.paidAmount > 0) {
       await apiFetch("/api/payments", { method:"POST", body:{ id:nextId(state.payments,"P","id"), date:date, custId:cust.id, name:cust.name, phone:cust.phone, saleId:sale.id, invoice:sale.invoice, amount:c.paidAmount, method:"Cash", category:"INSTALLMENT", notes:"Historical payments: " + c.paid + " EMI(s) already paid before account migration" } });
     }
     await loadAllData(true);
