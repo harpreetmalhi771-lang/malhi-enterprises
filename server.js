@@ -751,129 +751,101 @@ async function calculateSale(sale) {
 
 
 
-async function calculateSchedule(sale) {
-
-  const f = await calculateSale(sale);
-
-
-
-  if (
-
-    f.financed <= 0 ||
-
-    Number(sale.term) <= 0 ||
-
-    !sale.firstDue
-
-  ) {
-
-    return [];
-
+function getOldSalePaidEmiCount(sale) {
+  // Legacy imports store the pre-migration paid-EMI count in notes.
+  const notes = String(sale.notes || "");
+  const patterns = [
+    /EMIs?\s*(?:already\s*)?paid\s*[:=]\s*(\d+)/i,
+    /paid\s*EMIs?\s*[:=]\s*(\d+)/i,
+    /installments?\s*(?:already\s*)?paid\s*[:=]\s*(\d+)/i
+  ];
+  for (const pattern of patterns) {
+    const match = notes.match(pattern);
+    if (match) return Math.max(0, Number(match[1]) || 0);
   }
-
-
-
-  const rows = [];
-
-  const today = todayISO();
-
-
-
-  let remainingCash = round2(
-
-    f.payments
-
-      .filter(p => String(p.category).toUpperCase() !== "DEPOSIT")
-
-      .reduce((sum, p) => sum + Number(p.amount || 0), 0)
-
-  );
-
-
-
-  for (let i = 1; i <= Number(sale.term); i++) {
-
-    const due = addMonths(sale.firstDue, i - 1);
-
-
-
-    const expected =
-
-      i === Number(sale.term)
-
-        ? round2(f.repay - f.monthly * (Number(sale.term) - 1))
-
-        : f.monthly;
-
-
-
-    const allocated = round2(
-
-      Math.max(0, Math.min(expected, remainingCash))
-
-    );
-
-
-
-    remainingCash = round2(remainingCash - allocated);
-
-
-
-    const left = round2(Math.max(0, expected - allocated));
-
-
-
-    const overdueDays =
-
-      left > 0.009 && due < today
-
-        ? dateDiffDays(due, today)
-
-        : 0;
-
-
-
-    let status = "UPCOMING";
-
-
-
-    if (left <= 0.009) status = "PAID";
-
-    else if (allocated > 0.009 && due < today) status = "PARTIAL";
-
-    else if (due === today) status = "DUE TODAY";
-
-    else if (due < today) status = "OVERDUE";
-
-
-
-    rows.push({
-
-      installment: i,
-
-      due,
-
-      expected,
-
-      allocated,
-
-      left,
-
-      overdueDays,
-
-      status
-
-    });
-
-  }
-
-
-
-  return rows;
-
+  return 0;
 }
 
+function monthKey(iso) {
+  return String(iso || "").slice(0, 7);
+}
 
+async function calculateSchedule(sale) {
+  const f = await calculateSale(sale);
+  const term = Math.max(0, Math.floor(Number(sale.term) || 0));
+  const saleDate = String(sale.date || "").slice(0, 10);
+  if (f.financed <= 0 || term <= 0 || !saleDate) return [];
+
+  const today = todayISO();
+  const rows = [];
+  const monthlyExpected = Number(f.monthly) || 0;
+  const legacyPaidCount = Math.min(term, getOldSalePaidEmiCount(sale));
+
+  for (let i = 1; i <= term; i++) {
+    // Sale date is the anchor: EMI #1 is one month after sale, same day-of-month.
+    const due = addMonths(saleDate, i);
+    const expected = i === term
+      ? round2(f.repay - monthlyExpected * (term - 1))
+      : round2(monthlyExpected);
+    rows.push({
+      installment: i,
+      due,
+      expected,
+      allocated: i <= legacyPaidCount ? expected : 0,
+      left: i <= legacyPaidCount ? 0 : expected,
+      overdueDays: 0,
+      status: i <= legacyPaidCount ? "PAID" : "UPCOMING",
+      legacyPaid: i <= legacyPaidCount,
+      paymentIds: []
+    });
+  }
+
+  // Payments are applied to the installment for their calendar month whenever
+  // possible. A payment outside the schedule month goes to the oldest unpaid
+  // installment already due on that payment date. DEPOSIT payments are excluded.
+  const payments = [...(f.payments || [])]
+    .filter(p => String(p.category || "").toUpperCase() !== "DEPOSIT")
+    .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.id || "").localeCompare(String(b.id || "")));
+
+  for (const payment of payments) {
+    let amount = round2(Math.max(0, Number(payment.amount) || 0));
+    if (amount <= 0) continue;
+    const paymentDate = String(payment.date || "").slice(0, 10);
+    if (!paymentDate) continue;
+
+    let target = rows.find(r => monthKey(r.due) === monthKey(paymentDate) && r.left > 0.009);
+    if (!target) {
+      target = rows.find(r => r.left > 0.009 && r.due <= paymentDate);
+    }
+    // If payment is made before the first due date, apply it to the nearest
+    // upcoming installment rather than losing the payment from the schedule.
+    if (!target) target = rows.find(r => r.left > 0.009);
+
+    while (target && amount > 0.009) {
+      const applied = round2(Math.min(target.left, amount));
+      target.allocated = round2(target.allocated + applied);
+      target.left = round2(Math.max(0, target.expected - target.allocated));
+      target.paymentIds.push(payment.id);
+      amount = round2(amount - applied);
+      if (amount > 0.009) {
+        target = rows.find(r => r.left > 0.009 && r.due <= paymentDate && r !== target)
+          || rows.find(r => r.left > 0.009 && r !== target);
+      }
+    }
+  }
+
+  for (const row of rows) {
+    row.overdueDays = row.left > 0.009 && row.due < today
+      ? dateDiffDays(row.due, today)
+      : 0;
+    if (row.left <= 0.009) row.status = "PAID";
+    else if (row.allocated > 0.009 && row.due < today) row.status = "PARTIAL";
+    else if (row.due === today) row.status = "DUE TODAY";
+    else if (row.due < today) row.status = "OVERDUE";
+    else row.status = "UPCOMING";
+  }
+  return rows;
+}
 
 async function getSaleStatus(sale) {
 
@@ -3385,6 +3357,57 @@ app.get("/api/overdue", async (req, res) => {
 });
 
 
+
+app.get("/api/installments/missed", async (req, res) => {
+  try {
+    const sales = await all("SELECT * FROM sales ORDER BY date ASC, id ASC");
+    const rows = [];
+    for (const sale of sales) {
+      const schedule = await calculateSchedule(sale);
+      for (const item of schedule) {
+        if (item.due < todayISO() && item.left > 0.009) {
+          rows.push({
+            saleId: sale.id, invoice: sale.invoice, customerId: sale.custId,
+            name: sale.name, phone: sale.phone, product: sale.product,
+            installment: item.installment, due: item.due,
+            expected: item.expected, allocated: item.allocated,
+            paidAmount: item.allocated, left: item.left,
+            remainingAmount: item.left, overdueDays: item.overdueDays,
+            status: item.status, paymentIds: item.paymentIds
+          });
+        }
+      }
+    }
+    rows.sort((a, b) => a.due.localeCompare(b.due) || b.overdueDays - a.overdueDays);
+    ok(res, { count: rows.length, totalMissed: round2(rows.reduce((sum, r) => sum + r.left, 0)), missed: rows });
+  } catch (error) { fail(res, error); }
+});
+
+app.get("/api/installments/upcoming", async (req, res) => {
+  try {
+    const days = Math.max(0, Math.min(365, Number(req.query.days) || 30));
+    const today = todayISO();
+    const endDate = addMonths(today, 0);
+    const end = new Date(`${today}T00:00:00`);
+    end.setDate(end.getDate() + days);
+    const until = [end.getFullYear(), String(end.getMonth()+1).padStart(2,"0"), String(end.getDate()).padStart(2,"0")].join("-");
+    const sales = await all("SELECT * FROM sales ORDER BY date ASC, id ASC");
+    const rows = [];
+    for (const sale of sales) {
+      const schedule = await calculateSchedule(sale);
+      for (const item of schedule) {
+        if (item.due >= today && item.due <= until && item.left > 0.009) {
+          rows.push({ saleId:sale.id, invoice:sale.invoice, customerId:sale.custId,
+            name:sale.name, phone:sale.phone, product:sale.product,
+            installment:item.installment, due:item.due, expected:item.expected,
+            allocated:item.allocated, left:item.left, status:item.status });
+        }
+      }
+    }
+    rows.sort((a,b)=>a.due.localeCompare(b.due));
+    ok(res,{count:rows.length,until,upcoming:rows});
+  } catch(error){ fail(res,error); }
+});
 
 app.get("/api/installments/:saleId", async (req, res) => {
 

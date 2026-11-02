@@ -28,6 +28,18 @@
 .customer-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}
 .customer-detail-grid input,.customer-detail-grid textarea{background:#f7f9fc}
 @media(max-width:600px){.customer-detail-grid{grid-template-columns:1fr}}
+
+.sales-chart-card{margin:18px 0}
+.chart-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.chart-heading h3{margin:0}
+.monthly-sales-chart{display:grid;grid-template-columns:repeat(12,minmax(28px,1fr));gap:8px;align-items:end;min-height:230px;padding:12px 4px 0}
+.monthly-sales-chart .month-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:210px;gap:7px;min-width:0}
+.monthly-sales-chart .bar-area{height:165px;width:100%;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid #dbe3ef}
+.monthly-sales-chart .bar{width:min(34px,78%);min-height:2px;background:linear-gradient(180deg,#18a6b0,#12345a);border-radius:6px 6px 0 0;position:relative}
+.monthly-sales-chart .bar:hover{opacity:.8}
+.monthly-sales-chart .month-label{font-size:11px;color:#64748b}
+.monthly-sales-chart .month-value{font-size:10px;color:#526174;white-space:nowrap;transform:rotate(-35deg);transform-origin:center}
+@media(max-width:700px){.monthly-sales-chart{gap:3px}.monthly-sales-chart .month-label{font-size:9px}.monthly-sales-chart .month-value{display:none}.chart-heading{align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -58,6 +70,7 @@
       <button data-page="payment" onclick="go('payment')">₹ Payment</button>
       <button data-page="search" onclick="go('search')">⌕ Search</button>
       <button data-page="overdue" onclick="go('overdue')">⚠ Overdue</button>
+      <button data-page="missed-emis" onclick="go('missed-emis')">◷ Missed EMIs</button>
       <button data-page="installments" onclick="go('installments')">◷ Upcoming & Due</button>
       <button data-page="products" onclick="go('products')">▦ Products</button>
       <button data-page="customers" onclick="go('customers')">♙ Customers</button>
@@ -78,6 +91,12 @@
         <div class="kpi"><b id="kpi-collected">₹0.00</b><span>Collected this month</span></div>
         <div class="kpi"><b id="kpi-salesm">₹0.00</b><span>Sales this month</span></div>
         <div class="kpi"><b id="kpi-products">0</b><span>Active products</span></div>
+      </div>
+      <div class="card sales-chart-card">
+        <div class="chart-heading"><div><h3>Monthly sales</h3><p class="hint">Sales invoice totals by month</p></div>
+          <select id="dashboard-sales-year" onchange="renderMonthlySalesChart()"></select>
+        </div>
+        <div id="monthly-sales-chart" class="monthly-sales-chart"></div>
       </div>
       <div class="quick">
         <button onclick="go('sale')">+ New sale<span>Scooter or accessory, cash or finance</span></button>
@@ -246,6 +265,21 @@
   <div class="hero"><div><h2>Overdue & missed payments</h2><p>Track every unpaid installment and follow up faster.</p></div><div class="hero-actions"><button class="btn navy" onclick="exportListing('overdue')">⇩ Export Excel</button></div></div>
   <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Overdue accounts</span><input class="search-input" id="od-search" placeholder="Search customer, phone, sale..." oninput="renderOverdue()"><select id="od-size" onchange="renderOverdue()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="od-count"></span></div><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Phone</th><th>Sale</th><th>Due date</th><th>Expected</th><th>Outstanding</th><th>Late</th><th>Status</th></tr></thead><tbody id="od-body"></tbody></table></div><div class="pagination" id="od-pagination"></div></div>
 </section>
+
+    <section class="page" id="missed-emis">
+      <div class="hero"><div><h2>Missed EMI history</h2><p>Unpaid installments from each sale’s first due date through today, including historical missed EMIs.</p></div>
+        <div class="hero-actions"><button class="btn navy" onclick="exportListing('missed-emis')">⇩ Export Excel</button><button class="btn ghost" onclick="renderMissedEmis()">↻ Refresh</button></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi bad"><b id="missed-count">0</b><span>Missed installments</span></div>
+        <div class="kpi bad"><b id="missed-total">₹0.00</b><span>Total missed amount</span></div>
+        <div class="kpi"><b id="missed-customers">0</b><span>Customers affected</span></div>
+      </div>
+      <div class="list-card"><div class="list-toolbar"><span class="toolbar-title">Missed installment history</span>
+        <input class="search-input" id="missed-search" placeholder="Search customer, phone, sale..." oninput="renderMissedEmis()">
+        <select id="missed-size" onchange="renderMissedEmis()"><option>10</option><option>25</option><option>50</option></select><span class="toolbar-count" id="missed-count-label"></span>
+      </div><div class="table-wrap"><table><thead><tr><th>Customer</th><th>Phone</th><th>Sale</th><th>EMI #</th><th>Due date</th><th>EMI amount</th><th>Missed days</th><th>Amount unpaid</th><th>Status</th></tr></thead><tbody id="missed-body"></tbody></table></div><div class="pagination" id="missed-pagination"></div></div>
+    </section>
 
     <section class="page" id="installments">
       <div class="hero"><div><h2>Upcoming & due installments</h2><p>Unpaid EMIs due this month and installments due within the next 5 days. Send reminders directly on WhatsApp.</p></div><div class="hero-actions"><button class="btn navy" onclick="renderInstallments()">↻ Refresh</button></div></div>
@@ -454,6 +488,7 @@ async function loadAllData(showError = false) {
       apiFetch("/api/payments?limit=5000")
     ]);
 
+    EMI_API_CACHE.missed = EMI_API_CACHE.overdue = EMI_API_CACHE.upcoming = null;
     state.settings = { ...state.settings, ...(settingsRes.settings || {}) };
     state.customers = (customersRes.customers || []).map(c => ({
       ...c,
@@ -632,6 +667,22 @@ function oldSaleMeta(sale) {
   };
 }
 
+// Backend EMI schedule cache: the backend is the source of truth for EMI dates and payment allocation.
+const EMI_API_CACHE = { missed: null, overdue: null, upcoming: null, at: 0 };
+async function fetchEmiApiRows(kind, refresh = false) {
+  const ttl = 15000;
+  if (!refresh && EMI_API_CACHE[kind] && Date.now() - EMI_API_CACHE.at < ttl) return EMI_API_CACHE[kind];
+  const endpoint = kind === "missed" ? "/api/installments/missed" : kind === "overdue" ? "/api/overdue" : "/api/installments/upcoming?days=30";
+  const data = await apiFetch(endpoint);
+  const rows = kind === "missed" ? (data.missed || []) : kind === "overdue" ? (data.overdue || []) : (data.upcoming || []);
+  EMI_API_CACHE[kind] = rows.map(r => {
+    const sale = state.sales.find(s => String(s.id) === String(r.saleId)) || { id:r.saleId, name:r.name, phone:r.phone, invoice:r.invoice, custId:r.customerId, product:r.product };
+    return { ...r, sale, due:r.due, installment:r.installment, expected:Number(r.expected || 0), allocated:Number(r.allocated ?? r.paidAmount ?? 0), left:Number(r.left ?? r.remainingAmount ?? 0), overdueDays:Number(r.overdueDays || 0), daysUntil:dateDiffDays(todayISO(), r.due), missedDays:Number(r.overdueDays || dateDiffDays(r.due,todayISO())) };
+  });
+  EMI_API_CACHE.at = Date.now();
+  return EMI_API_CACHE[kind];
+}
+
 function scheduleForSale(sale) {
   if (!sale) return [];
   const f = saleFinance(sale);
@@ -724,6 +775,7 @@ function go(page) {
   if (page === "payment") preparePayment();
   if (page === "search") renderSearch();
   if (page === "overdue") renderOverdue();
+  if (page === "missed-emis") renderMissedEmis();
   if (page === "installments") renderInstallments();
   if (page === "products") renderProducts();
   if (page === "customers") renderCustomers();
@@ -745,8 +797,10 @@ async function renderHome() {
     $("kpi-salesm").textContent = money(k.salesThisMonth);
     $("kpi-products").textContent = Number(k.activeProducts || 0);
     setApiStatus(true);
+    renderMonthlySalesChart();
   } catch (e) {
     renderHomeFromCache();
+    renderMonthlySalesChart();
   }
 }
 
@@ -768,6 +822,55 @@ function renderHomeFromCache() {
   $("kpi-collected").textContent = money(collected);
   $("kpi-salesm").textContent = money(salesM);
   $("kpi-products").textContent = state.products.filter(x => x.active).length;
+}
+
+function renderMonthlySalesChart() {
+  const select = $("dashboard-sales-year");
+  const chart = $("monthly-sales-chart");
+  if (!select || !chart) return;
+  const years = [...new Set(state.sales.map(s => String(s.date || "").slice(0,4)).filter(y => /^\d{4}$/.test(y)))].sort();
+  const currentYear = String(new Date().getFullYear());
+  if (!years.includes(currentYear)) years.push(currentYear);
+  years.sort();
+  const previous = select.value;
+  select.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
+  select.value = years.includes(previous) ? previous : currentYear;
+  const year = select.value;
+  const totals = Array(12).fill(0);
+  state.sales.forEach(sale => {
+    const date = String(sale.date || "");
+    if (date.slice(0,4) !== year) return;
+    const month = Number(date.slice(5,7));
+    if (month >= 1 && month <= 12) totals[month-1] += saleFinance(sale).invoice;
+  });
+  const max = Math.max(...totals, 1);
+  const labels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  chart.innerHTML = totals.map((value,i) => {
+    const height = value > 0 ? Math.max(3, value/max*160) : 2;
+    return `<div class="month-col" title="${labels[i]} ${year}: ${money(value)}">
+      <div class="bar-area"><div class="bar" style="height:${height}px"></div></div>
+      <div class="month-value">${value ? money(value) : "₹0"}</div><div class="month-label">${labels[i]}</div>
+    </div>`;
+  }).join("");
+}
+
+async function allMissedInstallmentRows() {
+  return fetchEmiApiRows("missed", true);
+}
+
+async function renderMissedEmis() {
+  const q = ($("missed-search")?.value || "").toLowerCase().trim();
+  const body=$("missed-body"); if(!body) return;
+  try {
+    const all=await allMissedInstallmentRows();
+    const rows=all.filter(r=>!q||[r.sale.name,r.sale.phone,r.sale.id,r.sale.invoice,r.due].some(v=>String(v||"").toLowerCase().includes(q)));
+    const total=rows.reduce((sum,r)=>sum+Number(r.left||0),0);
+    $("missed-count").textContent=rows.length; $("missed-total").textContent=money(total);
+    $("missed-customers").textContent=new Set(rows.map(r=>String(r.sale.custId||r.sale.phone||r.sale.id))).size;
+    const pg=pageRows("missed-emis",rows,listSize("missed-size"));
+    body.innerHTML=pg.rows.map(r=>`<tr><td><b>${esc(r.sale.name||r.name||"")}</b></td><td>${esc(r.sale.phone||r.phone||"—")}</td><td class="mono">${esc(r.sale.id||r.saleId)}</td><td>${r.installment}</td><td>${fmtDate(r.due)}</td><td>${money(r.expected)}</td><td>${r.missedDays} days</td><td class="amount">${money(r.left)}</td><td><span class="badge ${r.status==="PARTIAL"?"warn":"bad"}">${r.status==="PARTIAL"?"PARTIAL":"MISSED"}</span></td></tr>`).join("")||`<tr><td colspan="9" class="table-empty">No missed installments found. 🎉</td></tr>`;
+    $("missed-count-label").textContent=`${rows.length} missed EMI${rows.length===1?"":"s"}`; paginate("missed-emis",pg.total,pg.pages,pg.start,pg.end,"missed-pagination");
+  } catch(e) { body.innerHTML=`<tr><td colspan="9" class="table-empty">Could not load missed EMIs: ${esc(e.message)}</td></tr>`; }
 }
 
 function fillProductSelect(sel) {
@@ -1873,6 +1976,7 @@ function exportListing(type){
   if(type==='sales') rows=state.sales.map(x=>{const f=saleFinance(x);return {Sale:x.id,Customer:x.name,Phone:x.phone,Invoice:x.invoice,Date:x.date,DueDate:saleNextDueDate(x),Product:f.name,InvoiceAmount:f.invoice,Advance:Number(x.advance||0),Term:Number(x.term||0),Monthly:f.monthly,Received:f.received,Outstanding:f.outstanding,Status:saleStatus(x)};});
   if(type==='payments') rows=[...state.payments].reverse().map(x=>({ID:x.id,Date:x.date,Customer:x.name,Phone:x.phone,Sale:x.saleId,Amount:Number(x.amount||0),Method:x.method,Category:x.category,Notes:x.notes||''}));
   if(type==='overdue') rows=state.sales.flatMap(s=>scheduleForSale(s).filter(r=>r.status==='OVERDUE'||(r.status==='PARTIAL'&&r.overdueDays>0)).map(r=>({Customer:s.name,Phone:s.phone,Sale:s.id,Invoice:s.invoice,DueDate:r.due,Expected:r.expected,Outstanding:r.left,LateDays:r.overdueDays,Status:r.status})));
+  if(type==='missed-emis') rows=allMissedInstallmentRows().map(r=>({Customer:r.sale.name,Phone:r.sale.phone,Sale:r.sale.id,Invoice:r.sale.invoice,Installment:r.installment,DueDate:r.due,EMIAmount:r.expected,MissedDays:r.missedDays,UnpaidAmount:r.left,Status:r.status}));
   exportXlsx(rows,type==='overdue'?'Overdue':type[0].toUpperCase()+type.slice(1),`malhi-${type}-${todayISO()}`);
 }
 function renderProducts(){
@@ -1911,32 +2015,25 @@ function renderPayments(){
   body.innerHTML=pg.rows.map(x=>`<tr><td class="mono">${esc(x.id)}</td><td>${fmtDate(x.date)}</td><td><b>${esc(x.name)}</b></td><td>${esc(x.phone)}</td><td class="mono">${esc(x.saleId)}</td><td class="amount">${money(x.amount)}</td><td>${esc(x.method)}</td><td><span class="badge info">${esc(x.category)}</span></td><td><button class="btn ghost small" onclick="editPayment('${esc(x.id)}')">Edit</button> <button class="btn danger small" onclick="deletePayment('${esc(x.id)}')">Delete</button></td></tr>`).join('')||`<tr><td colspan="9" class="table-empty">No payments match your filters.</td></tr>`;
   $("py-count").textContent=`${rows.length} payment${rows.length===1?'':'s'}`; paginate('payments',pg.total,pg.pages,pg.start,pg.end,'py-pagination');
 }
-function renderOverdue(){
-  const q=($("od-search")?.value||'').toLowerCase().trim(); let rows=[];
-  // Show only overdue installments whose due date falls in the current calendar month.
-  rows = currentMonthOverdueRows();
-  rows=rows.filter(r=>!q||[r.sale.name,r.sale.phone,r.sale.id,r.sale.invoice,r.due].some(v=>String(v||'').toLowerCase().includes(q))).sort((a,b)=>String(a.due).localeCompare(String(b.due)));
-  const pg=pageRows('overdue',rows,listSize('od-size')); const body=$("od-body");
-  body.innerHTML=pg.rows.map(r=>`<tr><td><b>${esc(r.sale.name)}</b></td><td>${esc(r.sale.phone)}</td><td class="mono">${esc(r.sale.id)}</td><td>${fmtDate(r.due)}</td><td>${money(r.expected)}</td><td class="amount">${money(r.left)}</td><td>${r.overdueDays} days</td><td><span class="badge ${r.status==='PARTIAL'?'warn':'bad'}">${esc(r.status)}</span></td></tr>`).join('')||`<tr><td colspan="8" class="table-empty">🎉 No overdue installments.</td></tr>`;
-  $("od-count").textContent=`${rows.length} overdue installment${rows.length===1?'':'s'}`; paginate('overdue',pg.total,pg.pages,pg.start,pg.end,'od-pagination');
+async function renderOverdue(){
+  const q=($("od-search")?.value||"").toLowerCase().trim(); const body=$("od-body"); if(!body) return;
+  try {
+    const all=await fetchEmiApiRows("overdue", true);
+    const rows=all.filter(r=>!q||[r.sale.name,r.sale.phone,r.sale.id,r.sale.invoice,r.due].some(v=>String(v||"").toLowerCase().includes(q))).sort((a,b)=>String(a.due).localeCompare(String(b.due)));
+    const pg=pageRows("overdue",rows,listSize("od-size"));
+    body.innerHTML=pg.rows.map(r=>`<tr><td><b>${esc(r.sale.name||r.name||"")}</b></td><td>${esc(r.sale.phone||r.phone||"")}</td><td class="mono">${esc(r.sale.id||r.saleId)}</td><td>${fmtDate(r.due)}</td><td>${money(r.expected)}</td><td class="amount">${money(r.left)}</td><td>${r.overdueDays} days</td><td><span class="badge ${r.status==='PARTIAL'?'warn':'bad'}">${esc(r.status||'OVERDUE')}</span></td></tr>`).join("")||`<tr><td colspan="8" class="table-empty">🎉 No overdue installments.</td></tr>`;
+    $("od-count").textContent=`${rows.length} overdue installment${rows.length===1?'':'s'}`; paginate("overdue",pg.total,pg.pages,pg.start,pg.end,"od-pagination");
+  } catch(e) { body.innerHTML=`<tr><td colspan="8" class="table-empty">Could not load overdue installments: ${esc(e.message)}</td></tr>`; }
 }
 
 function dateDiffDays(fromISO, toISO) {
   return Math.round((new Date(toISO + "T00:00:00") - new Date(fromISO + "T00:00:00")) / 86400000);
 }
-function upcomingInstallmentRows() {
-  const today = todayISO();
-  const month = today.slice(0, 7);
-  const horizon = new Date(today + "T00:00:00");
-  horizon.setDate(horizon.getDate() + 5);
-  const horizonISO = [horizon.getFullYear(), String(horizon.getMonth()+1).padStart(2,"0"), String(horizon.getDate()).padStart(2,"0")].join("-");
-  return state.sales.flatMap(sale => scheduleForSale(sale)
-    .filter(row => row.left > 0.009 && ((String(row.due).slice(0,7) === month) || (row.due >= today && row.due <= horizonISO)))
-    .map(row => ({...row, sale, daysUntil: dateDiffDays(today, row.due)})))
-    .sort((a,b) => String(a.due).localeCompare(String(b.due)) || String(a.sale.name).localeCompare(String(b.sale.name)));
-}
-function sendInstallmentWhatsApp(saleId, dueDate) {
-  const row = upcomingInstallmentRows().find(item => String(item.sale.id) === String(saleId) && String(item.due) === String(dueDate));
+async function upcomingInstallmentRows() { return fetchEmiApiRows("upcoming", true); }
+
+async function sendInstallmentWhatsApp(saleId, dueDate) {
+  const rows = await upcomingInstallmentRows();
+  const row = rows.find(item => String(item.sale.id || item.saleId) === String(saleId) && String(item.due) === String(dueDate));
   if (!row) return alert("Installment details not found. Please refresh the list.");
   // Use the first number if multiple contact numbers are stored.
   let phone = String(row.sale.phone || "").split(/[,;/]/)[0].replace(/\D/g, "");
@@ -1946,20 +2043,17 @@ function sendInstallmentWhatsApp(saleId, dueDate) {
   const message = `${greeting} this is a reminder from Malhi Enterprise. Your EMI of ${money(row.left)} is due on ${fmtDate(row.due)} for sale ${row.sale.id}. Please make the payment on or before the due date. Thank you.`;
   window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
 }
-function renderInstallments() {
-  const q = ($("ins-search")?.value || "").toLowerCase().trim();
-  const rows = upcomingInstallmentRows().filter(r => !q || [r.sale.name,r.sale.phone,r.sale.id,r.sale.invoice,r.due].some(v => String(v||"").toLowerCase().includes(q)));
-  const pg = pageRows("installments", rows, listSize("ins-size"));
-  const body = $("ins-body");
-  body.innerHTML = pg.rows.map(r => {
-    const idx = rows.indexOf(r);
-    const status = r.due < todayISO() ? "OVERDUE" : r.due === todayISO() ? "DUE TODAY" : "UPCOMING";
-    const dayLabel = r.daysUntil < 0 ? `${Math.abs(r.daysUntil)} days late` : r.daysUntil === 0 ? "Due today" : `${r.daysUntil} days left`;
-    return `<tr><td><b>${esc(r.sale.name)}</b></td><td>${esc(r.sale.phone || "—")}</td><td class="mono">${esc(r.sale.id)}</td><td>${fmtDate(r.due)}</td><td class="amount">${money(r.left)}</td><td>${dayLabel}</td><td><span class="badge ${status==='OVERDUE'?'bad':status==='DUE TODAY'?'warn':'info'}">${status}</span></td><td><button class="btn small primary" onclick="sendInstallmentWhatsApp('${esc(r.sale.id)}','${esc(r.due)}')" title="Send WhatsApp reminder">✉ Send</button></td></tr>`;
-  }).join("") || `<tr><td colspan="8" class="table-empty">No unpaid installments due this month or within the next 5 days.</td></tr>`;
-  $("ins-count").textContent = `${rows.length} installment${rows.length===1?"":"s"}`;
-  paginate("installments", pg.total, pg.pages, pg.start, pg.end, "ins-pagination");
+async function renderInstallments() {
+  const q = ($("ins-search")?.value || "").toLowerCase().trim(); const body=$("ins-body"); if(!body) return;
+  try {
+    const all=await upcomingInstallmentRows();
+    const rows=all.filter(r=>!q||[r.sale.name,r.sale.phone,r.sale.id,r.sale.invoice,r.due].some(v=>String(v||"").toLowerCase().includes(q)));
+    const pg=pageRows("installments",rows,listSize("ins-size"));
+    body.innerHTML=pg.rows.map(r=>{const status=r.due<todayISO()?"OVERDUE":r.due===todayISO()?"DUE TODAY":"UPCOMING";const dayLabel=r.daysUntil<0?`${Math.abs(r.daysUntil)} days late`:r.daysUntil===0?"Due today":`${r.daysUntil} days left`;return `<tr><td><b>${esc(r.sale.name||r.name||"")}</b></td><td>${esc(r.sale.phone||r.phone||"—")}</td><td class="mono">${esc(r.sale.id||r.saleId)}</td><td>${fmtDate(r.due)}</td><td class="amount">${money(r.left)}</td><td>${dayLabel}</td><td><span class="badge ${status==='OVERDUE'?'bad':status==='DUE TODAY'?'warn':'info'}">${status}</span></td><td><button class="btn small primary" onclick="sendInstallmentWhatsApp('${esc(r.sale.id||r.saleId)}','${esc(r.due)}')" title="Send WhatsApp reminder">✉ Send</button></td></tr>`;}).join("")||`<tr><td colspan="8" class="table-empty">No unpaid installments due in the next 30 days.</td></tr>`;
+    $("ins-count").textContent=`${rows.length} installment${rows.length===1?"":"s"}`; paginate("installments",pg.total,pg.pages,pg.start,pg.end,"ins-pagination");
+  } catch(e) { body.innerHTML=`<tr><td colspan="8" class="table-empty">Could not load installments: ${esc(e.message)}</td></tr>`; }
 }
+
 // Update API indicator text when connection state changes.
 const _setApiStatus=setApiStatus;
 setApiStatus=function(online,message){_setApiStatus(online,message);const p=$("api-pill");if(p){p.textContent=online?'● API Connected':'● API Offline';p.style.color=online?'#b9ffe7':'#ffd0d0'}};
